@@ -1,0 +1,7 @@
+D:\sam\Documents\LEDManager\bin\Debug\LEDManager.exe.config
+D:\sam\Documents\LEDManager\bin\Debug\LEDManager.exe
+D:\sam\Documents\LEDManager\bin\Debug\LEDManager.pdb
+D:\sam\Documents\LEDManager\obj\Debug\LEDManager.csprojAssemblyReference.cache
+D:\sam\Documents\LEDManager\obj\Debug\LEDManager.csproj.CoreCompileInputs.cache
+D:\sam\Documents\LEDManager\obj\Debug\LEDManager.exe
+D:\sam\Documents\LEDManager\obj\Debug\LEDManager.pdb
