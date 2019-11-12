@@ -1,10 +1,12 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Drawing;
 using System.Drawing.Imaging;
 using System.Linq;
 using System.Runtime.InteropServices;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 using System.Windows.Forms;
 
@@ -14,6 +16,15 @@ namespace LEDManager
     {
         public static void Main(string[] args)
         {
+            PerformanceCounter cpuCounter;
+            PerformanceCounter ramCounter;
+            PerformanceCounter gpuCounter;
+            cpuCounter = new PerformanceCounter("Processor", "% Processor Time", "_Total");
+            ramCounter = new PerformanceCounter("Memory", "% Committed Bytes In Use");
+            //gpuCounter = new PerformanceCounter("RemoteFX Root GPU Management", "VRAM: Reserved % per GPU", "GPU 0");
+
+            int delay = 250;
+
             while (true)
             {
                 DateTime start = DateTime.Now;
@@ -21,44 +32,45 @@ namespace LEDManager
                 Image img = CaptureWindow(User32.GetDesktopWindow());
 
                 Bitmap bmp = new Bitmap(img);
-                PictureAnalysis.GetMostUsedColor(bmp);
+                FastBitmap fbmp = new FastBitmap(bmp);
+                fbmp.LockImage();
 
-               // var list = new Dictionary<int, int>();
-               // for (int x = 0; x < bmp.Width; x++)
-               // {
-               //     for (int y = 0; y < bmp.Height; y++)
-               //     {
-               //         int rgb = bmp.GetPixel(x, y).ToArgb();
-               //         var added = false;
-               //         for (int i = 0; i < 10; i++)
-               //         {
-               //             if (list.ContainsKey(rgb + i))
-               //             {
-               //                 list[rgb + i]++;
-               //                 added = true;
-               //                 break;
-               //             }
-               //             if (list.ContainsKey(rgb - i))
-               //             {
-               //                 list[rgb - i]++;
-               //                 added = true;
-               //                 break;
-               //             }
-               //         }
-               //         if (!added)
-               //             list.Add(rgb, 1);
-               //     }
-               // }
-               //
-               // int mostCommon = list.Values.Max();
-               // int value = list.FirstOrDefault(x => x.Value == mostCommon).Key;
+                var list = new Dictionary<int, int>();
+                for (int x = 0; x < bmp.Width; x+= 50)
+                {
+                    for (int y = 0; y < bmp.Height; y++)
+                    {
+                        int rgb = fbmp.GetPixel(x, y).ToArgb();
+                        var added = false;
+                        for (int i = 0; i < 10; i++)
+                        {
+                            if (list.ContainsKey(rgb + i))
+                            {
+                                list[rgb + i]++;
+                                added = true;
+                                break;
+                            }
+                            if (list.ContainsKey(rgb - i))
+                            {
+                                list[rgb - i]++;
+                                added = true;
+                                break;
+                            }
+                        }
+                        if (!added)
+                            list.Add(rgb, 1);
+                    }
+                }
+
+                int mostCommon = list.Values.Max();
+                Color value = Color.FromArgb(list.FirstOrDefault(x => x.Value == mostCommon).Key);
 
                 DateTime color = DateTime.Now;
 
-                //Console.WriteLine($"{value} Analysis Time:  { (color - start).ToString()}");
-                Console.WriteLine($"{PictureAnalysis.MostUsedColor.ToString()} Analysis Time:  { (color - start).ToString()}");
+                Console.WriteLine($"{value.ToString()} { (color - start).ToString()} | {cpuCounter.NextValue()}% {ramCounter.NextValue()}% gpuCounter.NextValue()%");
 
-                Console.ReadLine();
+                Thread.Sleep(delay);
+                //Console.ReadLine();
             }           
         }
 
@@ -93,68 +105,72 @@ namespace LEDManager
         }
     }
 
-    public static class PictureAnalysis
+    unsafe public class FastBitmap
     {
-        public static List<Color> TenMostUsedColors { get; private set; }
-        public static List<int> TenMostUsedColorIncidences { get; private set; }
-
-        public static Color MostUsedColor { get; private set; }
-        public static int MostUsedColorIncidence { get; private set; }
-
-        private static int pixelColor;
-
-        private static Dictionary<int, int> dctColorIncidence;
-
-        public static void GetMostUsedColor(Bitmap theBitMap)
+        private struct PixelData
         {
-            TenMostUsedColors = new List<Color>();
-            TenMostUsedColorIncidences = new List<int>();
+            public byte blue;
+            public byte green;
+            public byte red;
+            public byte alpha;
 
-            MostUsedColor = Color.Empty;
-            MostUsedColorIncidence = 0;
-
-            // does using Dictionary<int,int> here
-            // really pay-off compared to using
-            // Dictionary<Color, int> ?
-
-            // would using a SortedDictionary be much slower, or ?
-
-            dctColorIncidence = new Dictionary<int, int>();
-
-            // this is what you want to speed up with unmanaged code
-            for (int row = 0; row < theBitMap.Size.Width; row++)
+            public override string ToString()
             {
-                for (int col = 0; col < theBitMap.Size.Height; col++)
-                {
-                    pixelColor = theBitMap.GetPixel(row, col).ToArgb();
-
-                    if (dctColorIncidence.Keys.Contains(pixelColor))
-                    {
-                        dctColorIncidence[pixelColor]++;
-                    }
-                    else
-                    {
-                        dctColorIncidence.Add(pixelColor, 1);
-                    }
-                }
+                return "(" + alpha.ToString() + ", " + red.ToString() + ", " + green.ToString() + ", " + blue.ToString() + ")";
             }
-
-            // note that there are those who argue that a
-            // .NET Generic Dictionary is never guaranteed
-            // to be sorted by methods like this
-            var dctSortedByValueHighToLow = dctColorIncidence.OrderByDescending(x => x.Value).ToDictionary(x => x.Key, x => x.Value);
-
-            // this should be replaced with some elegant Linq ?
-            foreach (KeyValuePair<int, int> kvp in dctSortedByValueHighToLow.Take(10))
-            {
-                TenMostUsedColors.Add(Color.FromArgb(kvp.Key));
-                TenMostUsedColorIncidences.Add(kvp.Value);
-            }
-
-            MostUsedColor = Color.FromArgb(dctSortedByValueHighToLow.First().Key);
-            MostUsedColorIncidence = dctSortedByValueHighToLow.First().Value;
         }
 
+        private Bitmap workingBitmap = null;
+        private int width = 0;
+        private BitmapData bitmapData = null;
+        private Byte* pBase = null;
+
+        public FastBitmap(Bitmap inputBitmap)
+        {
+            workingBitmap = inputBitmap;
+        }
+
+        public void LockImage()
+        {
+            Rectangle bounds = new Rectangle(Point.Empty, workingBitmap.Size);
+
+            width = (int)(bounds.Width * sizeof(PixelData));
+            if (width % 4 != 0) width = 4 * (width / 4 + 1);
+
+            //Lock Image
+            bitmapData = workingBitmap.LockBits(bounds, ImageLockMode.ReadWrite, PixelFormat.Format32bppArgb);
+            pBase = (Byte*)bitmapData.Scan0.ToPointer();
+        }
+
+        private PixelData* pixelData = null;
+
+        public Color GetPixel(int x, int y)
+        {
+            pixelData = (PixelData*)(pBase + y * width + x * sizeof(PixelData));
+            return Color.FromArgb(pixelData->alpha, pixelData->red, pixelData->green, pixelData->blue);
+        }
+
+        public Color GetPixelNext()
+        {
+            pixelData++;
+            return Color.FromArgb(pixelData->alpha, pixelData->red, pixelData->green, pixelData->blue);
+        }
+
+        public void SetPixel(int x, int y, Color color)
+        {
+            PixelData* data = (PixelData*)(pBase + y * width + x * sizeof(PixelData));
+            data->alpha = color.A;
+            data->red = color.R;
+            data->green = color.G;
+            data->blue = color.B;
+        }
+
+        public void UnlockImage()
+        {
+            workingBitmap.UnlockBits(bitmapData);
+            bitmapData = null;
+            pBase = null;
+        }
     }
 
     public class GDI32

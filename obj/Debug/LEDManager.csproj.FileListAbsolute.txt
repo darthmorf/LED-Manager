@@ -5,3 +5,10 @@ D:\sam\Documents\LEDManager\obj\Debug\LEDManager.csprojAssemblyReference.cache
 D:\sam\Documents\LEDManager\obj\Debug\LEDManager.csproj.CoreCompileInputs.cache
 D:\sam\Documents\LEDManager\obj\Debug\LEDManager.exe
 D:\sam\Documents\LEDManager\obj\Debug\LEDManager.pdb
+D:\Users\Sam\Documents\GitHub\LED-Manager\bin\Debug\LEDManager.exe.config
+D:\Users\Sam\Documents\GitHub\LED-Manager\bin\Debug\LEDManager.exe
+D:\Users\Sam\Documents\GitHub\LED-Manager\bin\Debug\LEDManager.pdb
+D:\Users\Sam\Documents\GitHub\LED-Manager\obj\Debug\LEDManager.csprojAssemblyReference.cache
+D:\Users\Sam\Documents\GitHub\LED-Manager\obj\Debug\LEDManager.csproj.CoreCompileInputs.cache
+D:\Users\Sam\Documents\GitHub\LED-Manager\obj\Debug\LEDManager.exe
+D:\Users\Sam\Documents\GitHub\LED-Manager\obj\Debug\LEDManager.pdb
