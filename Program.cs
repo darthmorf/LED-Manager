@@ -23,70 +23,74 @@ namespace LEDManager
             PerformanceCounter ramCounter;
             cpuCounter = new PerformanceCounter("Processor", "% Processor Time", "_Total");
             ramCounter = new PerformanceCounter("Memory", "% Committed Bytes In Use");
-
             GPUMonitor gpuCounter = new GPUMonitor();
 
-            DataPacket packet = new DataPacket();
+            Color screenColor;
+            float cpuValue;
+            float ramValue;
+            float gpuValue;
+
+            //LEDGrid ledGrid = new LEDGrid();
+            UdpClient client = new UdpClient("127.0.0.1",2610);
 
             int delay = 250;
 
-            using (packet.tcpClient = new TcpClient())
+            while (true)
             {
-                packet.tcpClient.Connect(IPAddress.Parse("127.0.0.1"), 2610);
+                screenColor = getScreenColor();
+                cpuValue = cpuCounter.NextValue();
+                ramValue = ramCounter.NextValue();
+                gpuValue = gpuCounter.GetGpuInfo();
 
-                while (true)
+                Console.WriteLine($"{screenColor.ToString()} {cpuValue}% {ramValue}% {gpuValue}%");
+                byte[] bytes = StatusPacket.NewStatusPacket(screenColor, cpuValue, ramValue, gpuValue);
+                client.Send(bytes, bytes.Length);
+
+                Thread.Sleep(delay);
+            }
+        }
+
+        public static Color getScreenColor()
+        {
+            Image img = CaptureWindow(User32.GetDesktopWindow());
+
+            Bitmap bmp = new Bitmap(img);
+            FastBitmap fbmp = new FastBitmap(bmp);
+            fbmp.LockImage();
+
+            var list = new Dictionary<int, int>();
+            for (int x = 0; x < bmp.Width; x += 50)
+            {
+                for (int y = 0; y < bmp.Height; y++)
                 {
-                    DateTime start = DateTime.Now;
-
-                    Image img = CaptureWindow(User32.GetDesktopWindow());
-
-                    Bitmap bmp = new Bitmap(img);
-                    FastBitmap fbmp = new FastBitmap(bmp);
-                    fbmp.LockImage();
-
-                    var list = new Dictionary<int, int>();
-                    for (int x = 0; x < bmp.Width; x += 50)
+                    int rgb = fbmp.GetPixel(x, y).ToArgb();
+                    var added = false;
+                    for (int i = 0; i < 10; i++)
                     {
-                        for (int y = 0; y < bmp.Height; y++)
+                        if (list.ContainsKey(rgb + i))
                         {
-                            int rgb = fbmp.GetPixel(x, y).ToArgb();
-                            var added = false;
-                            for (int i = 0; i < 10; i++)
-                            {
-                                if (list.ContainsKey(rgb + i))
-                                {
-                                    list[rgb + i]++;
-                                    added = true;
-                                    break;
-                                }
+                            list[rgb + i]++;
+                            added = true;
+                            break;
+                        }
 
-                                if (list.ContainsKey(rgb - i))
-                                {
-                                    list[rgb - i]++;
-                                    added = true;
-                                    break;
-                                }
-                            }
-
-                            if (!added)
-                                list.Add(rgb, 1);
+                        if (list.ContainsKey(rgb - i))
+                        {
+                            list[rgb - i]++;
+                            added = true;
+                            break;
                         }
                     }
 
-                    int mostCommon = list.Values.Max();
-                    Color value = Color.FromArgb(list.FirstOrDefault(x => x.Value == mostCommon).Key);
-
-                    DateTime color = DateTime.Now;
-
-                    Console.WriteLine(
-                        $"{value.ToString()} {(color - start).ToString()} | {cpuCounter.NextValue()}% {ramCounter.NextValue()}% {gpuCounter.GetGpuInfo()}%");
-                    packet.SetValues(value, cpuCounter.NextValue(), ramCounter.NextValue(), gpuCounter.GetGpuInfo());
-                    packet.Send();
-                    Thread.Sleep(delay);
+                    if (!added)
+                        list.Add(rgb, 1);
                 }
-
-                packet.tcpClient.Close();
             }
+
+            int mostCommon = list.Values.Max();
+            Color value = Color.FromArgb(list.FirstOrDefault(x => x.Value == mostCommon).Key);
+
+            return value;
         }
 
         public static Image CaptureWindow(IntPtr handle)
@@ -120,49 +124,90 @@ namespace LEDManager
         }
     }
 
-    public class DataPacket
+    public static class StatusPacket
     {
-        private Color screenColor;
-        private float cpuUsage;
-        private float memoryUsage;
-        private float gpuUsage;
-
-        public TcpClient tcpClient;
-        public void SetValues(Color _screenColor_, float _cpuUsage, float _memoryUsage, float _gpuUsage)
+        struct Data
         {
-            screenColor = _screenColor_;
-            cpuUsage = _cpuUsage;
-            memoryUsage = _memoryUsage;
-            gpuUsage = _gpuUsage;
+            public int colorA;
+            public int colorR;
+            public int colorG;
+            public int colorB;
+            public float cpuUsage;
+            public float ramUsage;
+            public float gpuUsage;
         }
 
-        private byte[] getDataBytes()
+        public static byte[] NewStatusPacket(Color color, float cpuUsage, float ramUsage, float gpuUsage)
         {
-            using (MemoryStream m = new MemoryStream())
+            Data data = new Data();
+            data.colorA = color.A;
+            data.colorR = color.R;
+            data.colorG = color.G;
+            data.colorB = color.B;
+            data.cpuUsage = cpuUsage;
+            data.ramUsage = ramUsage;
+            data.gpuUsage = gpuUsage;
+
+
+            int size = Marshal.SizeOf(data);
+            byte[] arr = new byte[size];
+
+            IntPtr ptr = Marshal.AllocHGlobal(size);
+            Marshal.StructureToPtr(data, ptr, true);
+            Marshal.Copy(ptr, arr, 0, size);
+            Marshal.FreeHGlobal(ptr);
+            return arr;
+        }
+    }
+
+    public class LEDGrid : List<List<Color>>
+    {
+        private int Width;
+        private int Height;
+        public LEDGrid (int width = 32, int height = 32)
+        {
+            Width = width;
+            Height = height;
+
+            Color defaultColor = Color.Cyan;;
+
+            for (int x = 0; x < width; x++)
             {
-                using (BinaryWriter writer = new BinaryWriter(m))
+                List<Color> column = new List<Color>();
+                for (int y = 0; y < height; y++)
                 {
-                    writer.Write(screenColor.A);
-                    writer.Write(screenColor.R);
-                    writer.Write(screenColor.G);
-                    writer.Write(screenColor.B);
-                    writer.Write(cpuUsage);
-                    writer.Write(memoryUsage);
-                    writer.Write(gpuUsage);
+                    column.Add(defaultColor);
                 }
-                return m.ToArray();
+                Add(column);
             }
         }
-
-        public void Send()
+        public Color get(int x, int y)
         {
-            using (NetworkStream networkStream = tcpClient.GetStream())
+            return this[x][y];
+        }
+
+        public void set(int x, int y, Color color)
+        {
+            this[x][y] = color;
+        }
+
+        public byte[] ToBytes()
+        {
+            byte[] bytes = new byte[Width*Height*4];
+
+            int i = 0;
+            foreach (List<Color> column in this)
             {
-                using (BinaryWriter writer = new BinaryWriter(networkStream))
+                foreach (Color color in column )
                 {
-                    writer.Write(getDataBytes());
+                    bytes[i++] = color.A;
+                    bytes[i++] = color.R;
+                    bytes[i++] = color.B;
+                    bytes[i++] = color.G;
                 }
             }
+
+            return bytes;
         }
     }
 
