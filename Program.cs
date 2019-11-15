@@ -18,10 +18,10 @@ namespace LEDManager
         {
             PerformanceCounter cpuCounter;
             PerformanceCounter ramCounter;
-            PerformanceCounter gpuCounter;
             cpuCounter = new PerformanceCounter("Processor", "% Processor Time", "_Total");
             ramCounter = new PerformanceCounter("Memory", "% Committed Bytes In Use");
-            //gpuCounter = new PerformanceCounter("RemoteFX Root GPU Management", "VRAM: Reserved % per GPU", "GPU 0");
+
+            GPUMonitor gpuCounter = new GPUMonitor();
 
             int delay = 250;
 
@@ -36,7 +36,7 @@ namespace LEDManager
                 fbmp.LockImage();
 
                 var list = new Dictionary<int, int>();
-                for (int x = 0; x < bmp.Width; x+= 50)
+                for (int x = 0; x < bmp.Width; x += 50)
                 {
                     for (int y = 0; y < bmp.Height; y++)
                     {
@@ -50,6 +50,7 @@ namespace LEDManager
                                 added = true;
                                 break;
                             }
+
                             if (list.ContainsKey(rgb - i))
                             {
                                 list[rgb - i]++;
@@ -57,6 +58,7 @@ namespace LEDManager
                                 break;
                             }
                         }
+
                         if (!added)
                             list.Add(rgb, 1);
                     }
@@ -67,11 +69,11 @@ namespace LEDManager
 
                 DateTime color = DateTime.Now;
 
-                Console.WriteLine($"{value.ToString()} { (color - start).ToString()} | {cpuCounter.NextValue()}% {ramCounter.NextValue()}% gpuCounter.NextValue()%");
+                Console.WriteLine($"{value.ToString()} {(color - start).ToString()} | {cpuCounter.NextValue()}% {ramCounter.NextValue()}% {gpuCounter.GetGpuInfo()}%");
 
                 Thread.Sleep(delay);
                 //Console.ReadLine();
-            }           
+            }
         }
 
         public static Image CaptureWindow(IntPtr handle)

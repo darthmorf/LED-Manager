@@ -2,3 +2,7 @@
 .vs/LEDManager/v16/
 
 bin/Debug/
+
+bin/
+
+obj/
