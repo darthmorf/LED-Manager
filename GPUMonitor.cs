@@ -23,7 +23,7 @@ namespace LEDManager
             public void VisitSensor(ISensor sensor) { }
             public void VisitParameter(IParameter parameter) { }
         }
-        public string GetGpuInfo()
+        public float GetGpuInfo()
         {
             UpdateVisitor updateVisitor = new UpdateVisitor();
             Computer computer = new Computer();
@@ -45,11 +45,11 @@ namespace LEDManager
                     }
 
                     computer.Close();
-                    return totalLoad.ToString();
+                    return (float) totalLoad;
                 }
             }
             computer.Close();
-            return "";
+            return 0f;
         }
     }
 }

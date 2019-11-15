@@ -3,7 +3,10 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Drawing;
 using System.Drawing.Imaging;
+using System.IO;
 using System.Linq;
+using System.Net;
+using System.Net.Sockets;
 using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading;
@@ -23,56 +26,66 @@ namespace LEDManager
 
             GPUMonitor gpuCounter = new GPUMonitor();
 
+            DataPacket packet = new DataPacket();
+
             int delay = 250;
 
-            while (true)
+            using (packet.tcpClient = new TcpClient())
             {
-                DateTime start = DateTime.Now;
+                packet.tcpClient.Connect(IPAddress.Parse("127.0.0.1"), 2610);
 
-                Image img = CaptureWindow(User32.GetDesktopWindow());
-
-                Bitmap bmp = new Bitmap(img);
-                FastBitmap fbmp = new FastBitmap(bmp);
-                fbmp.LockImage();
-
-                var list = new Dictionary<int, int>();
-                for (int x = 0; x < bmp.Width; x += 50)
+                while (true)
                 {
-                    for (int y = 0; y < bmp.Height; y++)
+                    DateTime start = DateTime.Now;
+
+                    Image img = CaptureWindow(User32.GetDesktopWindow());
+
+                    Bitmap bmp = new Bitmap(img);
+                    FastBitmap fbmp = new FastBitmap(bmp);
+                    fbmp.LockImage();
+
+                    var list = new Dictionary<int, int>();
+                    for (int x = 0; x < bmp.Width; x += 50)
                     {
-                        int rgb = fbmp.GetPixel(x, y).ToArgb();
-                        var added = false;
-                        for (int i = 0; i < 10; i++)
+                        for (int y = 0; y < bmp.Height; y++)
                         {
-                            if (list.ContainsKey(rgb + i))
+                            int rgb = fbmp.GetPixel(x, y).ToArgb();
+                            var added = false;
+                            for (int i = 0; i < 10; i++)
                             {
-                                list[rgb + i]++;
-                                added = true;
-                                break;
+                                if (list.ContainsKey(rgb + i))
+                                {
+                                    list[rgb + i]++;
+                                    added = true;
+                                    break;
+                                }
+
+                                if (list.ContainsKey(rgb - i))
+                                {
+                                    list[rgb - i]++;
+                                    added = true;
+                                    break;
+                                }
                             }
 
-                            if (list.ContainsKey(rgb - i))
-                            {
-                                list[rgb - i]++;
-                                added = true;
-                                break;
-                            }
+                            if (!added)
+                                list.Add(rgb, 1);
                         }
-
-                        if (!added)
-                            list.Add(rgb, 1);
                     }
+
+                    int mostCommon = list.Values.Max();
+                    Color value = Color.FromArgb(list.FirstOrDefault(x => x.Value == mostCommon).Key);
+
+                    DateTime color = DateTime.Now;
+
+                    Console.WriteLine(
+                        $"{value.ToString()} {(color - start).ToString()} | {cpuCounter.NextValue()}% {ramCounter.NextValue()}% {gpuCounter.GetGpuInfo()}%");
+                    packet.SetValues(value, cpuCounter.NextValue(), ramCounter.NextValue(), gpuCounter.GetGpuInfo());
+                    packet.Send();
+                    Thread.Sleep(delay);
                 }
 
-                int mostCommon = list.Values.Max();
-                Color value = Color.FromArgb(list.FirstOrDefault(x => x.Value == mostCommon).Key);
-
-                DateTime color = DateTime.Now;
-
-                Console.WriteLine($"{value.ToString()} {(color - start).ToString()} | {cpuCounter.NextValue()}% {ramCounter.NextValue()}% {gpuCounter.GetGpuInfo()}%");
-
-                Thread.Sleep(delay);
-                //Console.ReadLine();
+                packet.tcpClient.Close();
             }
         }
 
@@ -104,6 +117,52 @@ namespace LEDManager
             // free up the Bitmap object
             GDI32.DeleteObject(hBitmap);
             return img;
+        }
+    }
+
+    public class DataPacket
+    {
+        private Color screenColor;
+        private float cpuUsage;
+        private float memoryUsage;
+        private float gpuUsage;
+
+        public TcpClient tcpClient;
+        public void SetValues(Color _screenColor_, float _cpuUsage, float _memoryUsage, float _gpuUsage)
+        {
+            screenColor = _screenColor_;
+            cpuUsage = _cpuUsage;
+            memoryUsage = _memoryUsage;
+            gpuUsage = _gpuUsage;
+        }
+
+        private byte[] getDataBytes()
+        {
+            using (MemoryStream m = new MemoryStream())
+            {
+                using (BinaryWriter writer = new BinaryWriter(m))
+                {
+                    writer.Write(screenColor.A);
+                    writer.Write(screenColor.R);
+                    writer.Write(screenColor.G);
+                    writer.Write(screenColor.B);
+                    writer.Write(cpuUsage);
+                    writer.Write(memoryUsage);
+                    writer.Write(gpuUsage);
+                }
+                return m.ToArray();
+            }
+        }
+
+        public void Send()
+        {
+            using (NetworkStream networkStream = tcpClient.GetStream())
+            {
+                using (BinaryWriter writer = new BinaryWriter(networkStream))
+                {
+                    writer.Write(getDataBytes());
+                }
+            }
         }
     }
 
