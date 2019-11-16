@@ -30,6 +30,18 @@ namespace LEDManager
             float ramValue;
             float gpuValue;
 
+            List<Color> colors = new List<Color>();
+
+            foreach (System.Reflection.PropertyInfo prop in typeof(Color).GetProperties())
+            {
+                if (prop.PropertyType.FullName == "System.Drawing.Color")
+                    colors.Add(Color.FromName(prop.Name));
+            }
+
+            List<Color> bannedColors = new List<Color>() { Color.Transparent, Color.Black, Color.Gray, Color.LightSlateGray, Color.DimGray, Color.SlateGray, Color.DarkGray };
+
+            colors = colors.Except(bannedColors).ToList();
+
             //LEDGrid ledGrid = new LEDGrid();
             UdpClient client = new UdpClient("127.0.0.1",2610);
 
@@ -37,7 +49,7 @@ namespace LEDManager
 
             while (true)
             {
-                screenColor = getScreenColor();
+                screenColor = getScreenColor(colors);
                 cpuValue = cpuCounter.NextValue();
                 ramValue = ramCounter.NextValue();
                 gpuValue = gpuCounter.GetGpuInfo();
@@ -50,7 +62,7 @@ namespace LEDManager
             }
         }
 
-        public static Color getScreenColor()
+        public static Color getScreenColor(List<Color> allColors)
         {
             Image img = CaptureWindow(User32.GetDesktopWindow());
 
@@ -58,39 +70,39 @@ namespace LEDManager
             FastBitmap fbmp = new FastBitmap(bmp);
             fbmp.LockImage();
 
-            var list = new Dictionary<int, int>();
+            Dictionary<Color, int> colors = new Dictionary<Color, int>();
             for (int x = 0; x < bmp.Width; x += 50)
             {
                 for (int y = 0; y < bmp.Height; y++)
                 {
-                    int rgb = fbmp.GetPixel(x, y).ToArgb();
-                    var added = false;
-                    for (int i = 0; i < 10; i++)
+                    Color color = fbmp.GetPixel(x, y);
+                    color = closestColor(allColors, color);
+                    if (colors.ContainsKey(color))
                     {
-                        if (list.ContainsKey(rgb + i))
-                        {
-                            list[rgb + i]++;
-                            added = true;
-                            break;
-                        }
-
-                        if (list.ContainsKey(rgb - i))
-                        {
-                            list[rgb - i]++;
-                            added = true;
-                            break;
-                        }
+                        colors[color]++;
                     }
-
-                    if (!added)
-                        list.Add(rgb, 1);
+                    else
+                    {
+                        colors.Add(color, 1);
+                    }
                 }
             }
 
-            int mostCommon = list.Values.Max();
-            Color value = Color.FromArgb(list.FirstOrDefault(x => x.Value == mostCommon).Key);
+            int mostCommon = colors.Values.Max();
+            return colors.FirstOrDefault(x => x.Value == mostCommon).Key;
+        }
 
-            return value;
+        static Color closestColor(List<Color> colors, Color target)
+        {
+            var hue1 = target.GetHue();
+            var diffs = colors.Select(n => getHueDistance(n.GetHue(), hue1));
+            var diffMin = diffs.Min(n => n);
+            return colors[diffs.ToList().FindIndex(n => n == diffMin)];
+        }
+
+        static float getHueDistance(float hue1, float hue2)
+        {
+            float d = Math.Abs(hue1 - hue2); return d > 180 ? 360 - d : d;
         }
 
         public static Image CaptureWindow(IntPtr handle)
