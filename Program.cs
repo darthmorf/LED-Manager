@@ -25,12 +25,13 @@ namespace LEDManager
             ramCounter = new PerformanceCounter("Memory", "% Committed Bytes In Use");
             GPUMonitor gpuCounter = new GPUMonitor();
 
-            Color screenColor;
+            //Color screenColor;
+            Bitmap image;
             float cpuValue;
             float ramValue;
             float gpuValue;
 
-            List<Color> colors = new List<Color>();
+            /*List<Color> colors = new List<Color>();
 
             foreach (System.Reflection.PropertyInfo prop in typeof(Color).GetProperties())
             {
@@ -40,7 +41,7 @@ namespace LEDManager
 
             List<Color> bannedColors = new List<Color>() { Color.Transparent, Color.Black, Color.Gray, Color.LightSlateGray, Color.DimGray, Color.SlateGray, Color.DarkGray };
 
-            colors = colors.Except(bannedColors).ToList();
+            colors = colors.Except(bannedColors).ToList(); */
 
             //LEDGrid ledGrid = new LEDGrid();
             UdpClient client = new UdpClient("127.0.0.1",2610);
@@ -49,14 +50,17 @@ namespace LEDManager
 
             while (true)
             {
-                screenColor = getScreenColor(colors);
+                //screenColor = getScreenColor(colors);
+                image = new Bitmap(CaptureWindow(User32.GetDesktopWindow()));
                 cpuValue = cpuCounter.NextValue();
                 ramValue = ramCounter.NextValue();
                 gpuValue = gpuCounter.GetGpuInfo();
 
-                Console.WriteLine($"{screenColor.ToString()} {cpuValue}% {ramValue}% {gpuValue}%");
-                byte[] bytes = StatusPacket.NewStatusPacket(screenColor, cpuValue, ramValue, gpuValue);
-                client.Send(bytes, bytes.Length);
+                //Console.WriteLine($"{screenColor.ToString()} {cpuValue}% {ramValue}% {gpuValue}%");
+                //byte[] bytes = StatusPacket.NewPacket(screenColor, cpuValue, ramValue, gpuValue);
+
+                Console.WriteLine($"{cpuValue}% {ramValue}% {gpuValue}%");
+                ImageStatusPacket.SendPacket(client, image, cpuValue, ramValue, gpuValue);
 
                 Thread.Sleep(delay);
             }
@@ -138,8 +142,10 @@ namespace LEDManager
 
     public static class StatusPacket
     {
+        private const string type = "StatusPacket";
         struct Data
         {
+            const string type = "Status";
             public int colorA;
             public int colorR;
             public int colorG;
@@ -149,7 +155,7 @@ namespace LEDManager
             public float gpuUsage;
         }
 
-        public static byte[] NewStatusPacket(Color color, float cpuUsage, float ramUsage, float gpuUsage)
+        public static void SendPacket(UdpClient client, Color color, float cpuUsage, float ramUsage, float gpuUsage)
         {
             Data data = new Data();
             data.colorA = color.A;
@@ -162,13 +168,52 @@ namespace LEDManager
 
 
             int size = Marshal.SizeOf(data);
-            byte[] arr = new byte[size];
+            byte[] dataBytes = new byte[size];
 
             IntPtr ptr = Marshal.AllocHGlobal(size);
             Marshal.StructureToPtr(data, ptr, true);
-            Marshal.Copy(ptr, arr, 0, size);
+            Marshal.Copy(ptr, dataBytes, 0, size);
             Marshal.FreeHGlobal(ptr);
-            return arr;
+
+            byte[] typeBytes = Encoding.ASCII.GetBytes(type);
+
+            client.Send(typeBytes, typeBytes.Length);
+            client.Send(dataBytes, dataBytes.Length);
+        }
+    }
+
+    public static class ImageStatusPacket
+    {
+        const string type = "ImageStatus";
+        struct Data
+        {
+            public float cpuUsage;
+            public float ramUsage;
+            public float gpuUsage;
+            public Bitmap image;
+        }
+
+        public static void SendPacket(UdpClient client, Bitmap image, float cpuUsage, float ramUsage, float gpuUsage)
+        {
+            Data data = new Data();
+            data.image = image;
+            data.cpuUsage = cpuUsage;
+            data.ramUsage = ramUsage;
+            data.gpuUsage = gpuUsage;
+
+
+            int size = Marshal.SizeOf(data);
+            byte[] dataBytes = new byte[size];
+
+            IntPtr ptr = Marshal.AllocHGlobal(size);
+            Marshal.StructureToPtr(data, ptr, true);
+            Marshal.Copy(ptr, dataBytes, 0, size);
+            Marshal.FreeHGlobal(ptr);
+
+            byte[] typeBytes = Encoding.ASCII.GetBytes(type);
+
+            client.Send(typeBytes, typeBytes.Length);
+            client.Send(dataBytes, dataBytes.Length);
         }
     }
 

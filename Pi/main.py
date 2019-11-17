@@ -17,6 +17,18 @@ class Color:
 
 
 
+class ImageStatusPacket:
+  def __init__(self, data):
+    data = struct.unpack("fff", data)
+    self.cpuUsage = round(data[0])
+    self.ramUsage = round(data[1])
+    self.gpuUsage = round(data[2])
+    self.imageData = data[3]
+
+  def toString(self):
+    return "ImageStatus: " + str(self.cpuUsage) + "% " + str(self.ramUsage) + "% " + str(self.gpuUsage) + "%"
+
+
 class StatusPacket:
   def __init__(self, data):
     data = struct.unpack("iiiifff", data)
@@ -26,7 +38,7 @@ class StatusPacket:
     self.gpuUsage = round(data[6])
 
   def toString(self):
-    return self.color.toString() + " " + str(self.cpuUsage) + "% " + str(self.ramUsage) + "% " + str(self.gpuUsage) + "%"
+    return "Status: " + self.color.toString() + " " + str(self.cpuUsage) + "% " + str(self.ramUsage) + "% " + str(self.gpuUsage) + "%"
 
 
 
@@ -139,15 +151,30 @@ def __main__():
  
 
   while True:
-    data, addr = sock.recvfrom(1024) # buffer size is 1024 bytes
-    statusPacket = StatusPacket(data)
-    print(statusPacket.toString())
+    packetType, addr = sock.recvfrom(1024) # buffer size is 1024 bytes
+    packetData, addr = sock.recvfrom(1024)
+    packetType = packetType.decode("ASCII")
+    
+    if packetType == "Status":
+      packet = StatusPacket(packetData)
+      print(packet.toString())
+      grid.setBG(Color(255, 0, 0, 0))
+      grid.drawOutlines()
+      grid.drawBars(packet.cpuUsage, packet.ramUsage, packet.gpuUsage)
+      grid.drawOutline(packet.color)
+      gridDisplay.update()
 
-    grid.setBG(Color(255, 0, 0, 0))
-    grid.drawOutlines()
-    grid.drawBars(statusPacket.cpuUsage, statusPacket.ramUsage, statusPacket.gpuUsage)
-    grid.drawOutline(statusPacket.color)
-    gridDisplay.update()
+    elif packetType == "ImageStatus":
+      packet = ImageStatusPacket(packetData)
+      print(packet.toString())
+      grid.setBG(Color(255, 0, 0, 0))
+      grid.drawOutlines()
+      grid.drawBars(packet.cpuUsage, packet.ramUsage, packet.gpuUsage)
+      gridDisplay.update()
+    
+   
+
+    
 
 
 
