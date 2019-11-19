@@ -23,22 +23,9 @@ class ImageStatusPacket:
     self.cpuUsage = round(data[0])
     self.ramUsage = round(data[1])
     self.gpuUsage = round(data[2])
-    self.imageData = data[3]
 
   def toString(self):
     return "ImageStatus: " + str(self.cpuUsage) + "% " + str(self.ramUsage) + "% " + str(self.gpuUsage) + "%"
-
-
-class StatusPacket:
-  def __init__(self, data):
-    data = struct.unpack("iiiifff", data)
-    self.color = Color(data[0],data[1],data[2],data[3])
-    self.cpuUsage = round(data[4])
-    self.ramUsage = round(data[5])
-    self.gpuUsage = round(data[6])
-
-  def toString(self):
-    return "Status: " + self.color.toString() + " " + str(self.cpuUsage) + "% " + str(self.ramUsage) + "% " + str(self.gpuUsage) + "%"
 
 
 
@@ -154,15 +141,6 @@ def __main__():
     packetType, addr = sock.recvfrom(1024) # buffer size is 1024 bytes
     packetData, addr = sock.recvfrom(1024)
     packetType = packetType.decode("ASCII")
-    
-    if packetType == "Status":
-      packet = StatusPacket(packetData)
-      print(packet.toString())
-      grid.setBG(Color(255, 0, 0, 0))
-      grid.drawOutlines()
-      grid.drawBars(packet.cpuUsage, packet.ramUsage, packet.gpuUsage)
-      grid.drawOutline(packet.color)
-      gridDisplay.update()
 
     elif packetType == "ImageStatus":
       packet = ImageStatusPacket(packetData)
