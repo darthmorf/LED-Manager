@@ -1,6 +1,9 @@
 import socket
 import struct
 import pygame
+import sys
+import io
+from PIL import Image
 
 class Color:
   def __init__(self, a, r, g, b):
@@ -136,26 +139,36 @@ def __main__():
   with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as sock:
     sock.bind((HOST, PORT))
     sock.listen()
+    print("Waiting for Connection...")
     conn, addr = sock.accept()
 
     with conn:
       print('Connected by', addr)
       while True:
-        packetType = conn.recv(1024)
-        if not packetType:
-          break
+        try:          
+          packetType = conn.recv(1024)
+          packetData = conn.recv(1024)
+          packetImageSize = conn.recv(1024)
+          packetImageSize = int.from_bytes(packetImageSize, byteorder='little', signed=True)
+          packetImage = conn.recv(packetImageSize)
+          
+          if not packetType or not packetData or not packetImageSize:
+            break
 
-        packetData = conn.recv(1024)
-        packetType = packetType.decode("ASCII")
+          packetType = packetType.decode("ASCII") 
 
-        if packetType == "ImageStatus":
-          packet = ImageStatusPacket(packetData)
-          print(packet.toString())
-          grid.setBG(Color(255, 0, 0, 0))
-          grid.drawOutlines()
-          grid.drawBars(packet.cpuUsage, packet.ramUsage, packet.gpuUsage)
-          gridDisplay.update()
+          if packetType == "ImageStatus":
+            packet = ImageStatusPacket(packetData)
+            print(packet.toString())
+            grid.setBG(Color(255, 0, 0, 0))
+            grid.drawOutlines()
+            grid.drawBars(packet.cpuUsage, packet.ramUsage, packet.gpuUsage)
+            gridDisplay.update()
+
+
+        except Exception as e: print(e)
     
 
 
 __main__()
+ 

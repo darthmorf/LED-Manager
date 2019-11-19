@@ -42,6 +42,7 @@ namespace LEDManager
             while (true)
             { 
                 image = new Bitmap(CaptureWindow(User32.GetDesktopWindow()));
+
                 cpuValue = cpuCounter.NextValue();
                 ramValue = ramCounter.NextValue();
                 gpuValue = gpuCounter.GetGpuInfo();
@@ -113,8 +114,29 @@ namespace LEDManager
 
             byte[] typeBytes = Encoding.ASCII.GetBytes(type);
 
-            stream.Write(typeBytes, 0, typeBytes.Length);
-            stream.Write(dataBytes, 0, dataBytes.Length);
+            MemoryStream ms = new MemoryStream();
+            image.Save(ms, ImageFormat.Jpeg);
+            // read to end
+            byte[] imageBytes = ms.GetBuffer();
+            image.Dispose();
+            ms.Close();
+
+            SendBytes(stream, typeBytes);
+            SendBytes(stream, dataBytes);
+            SendBytes(stream, BitConverter.GetBytes(imageBytes.Length));
+            SendBytes(stream, imageBytes);
+        }
+
+        public static void SendBytes(Stream stream, byte[] bytes)
+        {
+            if (stream.CanWrite)
+            {
+                stream.Write(bytes, 0, bytes.Length);
+            }
+            else
+            {
+                Console.WriteLine("Could not write data to stream as it has closed!");
+            }
         }
     }
 
