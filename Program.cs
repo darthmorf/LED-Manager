@@ -31,7 +31,11 @@ namespace LEDManager
             float ramValue;
             float gpuValue;
 
-            UdpClient client = new UdpClient("127.0.0.1",2610);
+            TcpClient client = new TcpClient();
+            Console.WriteLine("Connecting.....");
+            client.Connect("127.0.0.1", 2610);
+
+            Stream stream = client.GetStream();
 
             int delay = 250;
 
@@ -43,7 +47,7 @@ namespace LEDManager
                 gpuValue = gpuCounter.GetGpuInfo();
 
                 Console.WriteLine($"{cpuValue}% {ramValue}% {gpuValue}%");
-                ImageStatusPacket.SendPacket(client, image, cpuValue, ramValue, gpuValue);
+                ImageStatusPacket.SendPacket(stream, image, cpuValue, ramValue, gpuValue);
 
                 Thread.Sleep(delay);
             }
@@ -88,13 +92,12 @@ namespace LEDManager
             public float cpuUsage;
             public float ramUsage;
             public float gpuUsage;
-            public Bitmap image;
         }
 
-        public static void SendPacket(UdpClient client, Bitmap image, float cpuUsage, float ramUsage, float gpuUsage)
+        public static void SendPacket(Stream stream, Bitmap image, float cpuUsage, float ramUsage, float gpuUsage)
         {
             Data data = new Data();
-            data.image = image;
+            //data.image = image;
             data.cpuUsage = cpuUsage;
             data.ramUsage = ramUsage;
             data.gpuUsage = gpuUsage;
@@ -110,8 +113,8 @@ namespace LEDManager
 
             byte[] typeBytes = Encoding.ASCII.GetBytes(type);
 
-            client.Send(typeBytes, typeBytes.Length);
-            client.Send(dataBytes, dataBytes.Length);
+            stream.Write(typeBytes, 0, typeBytes.Length);
+            stream.Write(dataBytes, 0, dataBytes.Length);
         }
     }
 

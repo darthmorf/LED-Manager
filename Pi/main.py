@@ -126,35 +126,36 @@ class GridDisplay:
 
 
 def __main__():
-  UDP_IP = "127.0.0.1"
-  UDP_PORT = 2610
-
-  sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM) 
-  sock.bind((UDP_IP, UDP_PORT))
+  HOST = "127.0.0.1"
+  PORT = 2610
 
   grid = Grid()
   gridDisplay = GridDisplay(grid)
 
- 
+  
+  with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as sock:
+    sock.bind((HOST, PORT))
+    sock.listen()
+    conn, addr = sock.accept()
 
-  while True:
-    packetType, addr = sock.recvfrom(1024) # buffer size is 1024 bytes
-    packetData, addr = sock.recvfrom(1024)
-    packetType = packetType.decode("ASCII")
+    with conn:
+      print('Connected by', addr)
+      while True:
+        packetType = conn.recv(1024)
+        if not packetType:
+          break
 
-    elif packetType == "ImageStatus":
-      packet = ImageStatusPacket(packetData)
-      print(packet.toString())
-      grid.setBG(Color(255, 0, 0, 0))
-      grid.drawOutlines()
-      grid.drawBars(packet.cpuUsage, packet.ramUsage, packet.gpuUsage)
-      gridDisplay.update()
+        packetData = conn.recv(1024)
+        packetType = packetType.decode("ASCII")
+
+        if packetType == "ImageStatus":
+          packet = ImageStatusPacket(packetData)
+          print(packet.toString())
+          grid.setBG(Color(255, 0, 0, 0))
+          grid.drawOutlines()
+          grid.drawBars(packet.cpuUsage, packet.ramUsage, packet.gpuUsage)
+          gridDisplay.update()
     
-   
-
-    
-
-
 
 
 __main__()
