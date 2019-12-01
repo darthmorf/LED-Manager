@@ -4,6 +4,11 @@ import pygame
 import sys
 import io
 from PIL import Image
+import numpy as np
+import scipy
+import scipy.misc
+import scipy.cluster
+import binascii
 
 class Color:
   def __init__(self, a, r, g, b):
@@ -21,11 +26,18 @@ class Color:
 
 
 class ImageStatusPacket:
-  def __init__(self, data):
-    data = struct.unpack("fff", data)
-    self.cpuUsage = round(data[0])
-    self.ramUsage = round(data[1])
-    self.gpuUsage = round(data[2])
+  def __init__(self, data, pastData):
+    try:
+      data = struct.unpack("fff", data)
+      self.cpuUsage = round(data[0])
+      self.ramUsage = round(data[1])
+      self.gpuUsage = round(data[2])
+    except:
+      print("Unpack error")
+      self.cpuUsage = pastData.cpuUsage
+      self.ramUsage = pastData.ramUsage
+      self.gpuUsage = pastData.gpuUsage
+      packetError()
 
   def toString(self):
     return "ImageStatus: " + str(self.cpuUsage) + "% " + str(self.ramUsage) + "% " + str(self.gpuUsage) + "%"
@@ -127,6 +139,29 @@ class GridDisplay:
     pygame.display.flip()
 
 
+def getDominantColor(im):
+  NUM_CLUSTERS = 5
+  im = im.resize((150, 150))      # optional, to reduce time
+  ar = np.asarray(im)
+  shape = ar.shape
+  ar = ar.reshape(scipy.product(shape[:2]), shape[2]).astype(float)
+  codes, dist = scipy.cluster.vq.kmeans(ar, NUM_CLUSTERS)
+
+  vecs, dist = scipy.cluster.vq.vq(ar, codes)         # assign codes
+  counts, bins = scipy.histogram(vecs, len(codes))    # count occurrences
+
+  index_max = scipy.argmax(counts)                    # find most frequent
+  peak = codes[index_max]
+  rawcolor = binascii.hexlify(bytearray(int(c) for c in peak)).decode('ascii')
+  rawcolor = list(int(rawcolor.lstrip('#')[i:i+2], 16) for i in (0, 2, 4))
+  
+  color = Color(0,rawcolor[0],rawcolor[1],rawcolor[2])
+  return color
+
+socketSize = 999999999
+conn_ = None
+def packetError():
+  misaligned = conn_.recv(socketSize)
 
 def __main__():
   HOST = "127.0.0.1"
@@ -142,10 +177,9 @@ def __main__():
     print("Waiting for Connection...")
     conn, addr = sock.accept()
 
-    socketSize = 999999999
-
-
+    lastStatusPacket = None
     with conn:
+      conn_ = conn
       print('Connected by', addr)
       while True:
         try:          
@@ -155,15 +189,23 @@ def __main__():
           if not packetData or not packetImage:
             break
 
-          packet = ImageStatusPacket(packetData)
+          packet = ImageStatusPacket(packetData, lastStatusPacket)
+          lastStatusPacket = packet
           print(packet.toString())
           grid.setBG(Color(255, 0, 0, 0))
           grid.drawOutlines()
           grid.drawBars(packet.cpuUsage, packet.ramUsage, packet.gpuUsage)
-          gridDisplay.update()
 
-          image = Image.open(io.BytesIO(packetImage))
+          try:
+            image = Image.open(io.BytesIO(packetImage))
+          except:
+            packetError()
+
           #image.show()
+          color = getDominantColor(image)
+          grid.drawOutline(color)
+
+          gridDisplay.update()
 
 
         except Exception as e: print(e)
