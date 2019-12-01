@@ -87,7 +87,6 @@ namespace LEDManager
 
     public static class ImageStatusPacket
     {
-        const string type = "ImageStatus";
         struct Data
         {
             public float cpuUsage;
@@ -112,8 +111,6 @@ namespace LEDManager
             Marshal.Copy(ptr, dataBytes, 0, size);
             Marshal.FreeHGlobal(ptr);
 
-            byte[] typeBytes = Encoding.ASCII.GetBytes(type);
-
             MemoryStream ms = new MemoryStream();
             image.Save(ms, ImageFormat.Jpeg);
             // read to end
@@ -121,9 +118,7 @@ namespace LEDManager
             image.Dispose();
             ms.Close();
 
-            SendBytes(stream, typeBytes);
             SendBytes(stream, dataBytes);
-            SendBytes(stream, BitConverter.GetBytes(imageBytes.Length));
             SendBytes(stream, imageBytes);
         }
 

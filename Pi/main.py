@@ -142,28 +142,28 @@ def __main__():
     print("Waiting for Connection...")
     conn, addr = sock.accept()
 
+    socketSize = 999999999
+
+
     with conn:
       print('Connected by', addr)
       while True:
         try:          
-          packetType = conn.recv(1024)
-          packetData = conn.recv(1024)
-          packetImageSize = conn.recv(1024)
-          packetImageSize = int.from_bytes(packetImageSize, byteorder='little', signed=True)
-          packetImage = conn.recv(packetImageSize)
+          packetData  = conn.recv(socketSize)
+          packetImage = conn.recv(socketSize)
           
-          if not packetType or not packetData or not packetImageSize:
+          if not packetData or not packetImage:
             break
 
-          packetType = packetType.decode("ASCII") 
+          packet = ImageStatusPacket(packetData)
+          print(packet.toString())
+          grid.setBG(Color(255, 0, 0, 0))
+          grid.drawOutlines()
+          grid.drawBars(packet.cpuUsage, packet.ramUsage, packet.gpuUsage)
+          gridDisplay.update()
 
-          if packetType == "ImageStatus":
-            packet = ImageStatusPacket(packetData)
-            print(packet.toString())
-            grid.setBG(Color(255, 0, 0, 0))
-            grid.drawOutlines()
-            grid.drawBars(packet.cpuUsage, packet.ramUsage, packet.gpuUsage)
-            gridDisplay.update()
+          image = Image.open(io.BytesIO(packetImage))
+          #image.show()
 
 
         except Exception as e: print(e)
