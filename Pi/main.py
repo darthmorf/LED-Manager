@@ -20,12 +20,11 @@ class Color:
 
 
 
-class ImageStatusPacket:
-  def __init__(self, data):
-    data = struct.unpack("fff", data)
-    self.cpuUsage = round(data[0])
-    self.ramUsage = round(data[1])
-    self.gpuUsage = round(data[2])
+class ImageStatus:
+  def __init__(self):
+    self.cpuUsage = -1
+    self.ramUsage = -1
+    self.gpuUsage = -1
 
   def toString(self):
     return "ImageStatus: " + str(self.cpuUsage) + "% " + str(self.ramUsage) + "% " + str(self.gpuUsage) + "%"
@@ -144,9 +143,30 @@ def __main__():
 
     with conn:
       print('Connected by', addr)
+      packetImageSize = 1024
+
       while True:
         try:          
-          packetType = conn.recv(1024)
+          packet = conn.recv(packetImageSize)
+          packetType = str(packet)[5:6]
+
+          if packetType == "0":
+            print("data packet")
+            data = struct.unpack("fff", packet)
+
+          elif packetType == "1":
+            print("imagelength packet")
+            packetImageSize = int.from_bytes(packetImageSize, byteorder='little', signed=True)
+
+          elif packetType == "2":
+            print("image packet")
+            data = struct.unpack("fff", packet)
+
+          else:
+            pass
+
+
+
           packetData = conn.recv(1024)
           packetImageSize = conn.recv(1024)
           packetImageSize = int.from_bytes(packetImageSize, byteorder='little', signed=True)

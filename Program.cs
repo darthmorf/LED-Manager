@@ -12,6 +12,7 @@ using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Windows.Forms;
+using ProtoBuf;
 
 namespace LEDManager
 {
@@ -48,7 +49,12 @@ namespace LEDManager
                 gpuValue = gpuCounter.GetGpuInfo();
 
                 Console.WriteLine($"{cpuValue}% {ramValue}% {gpuValue}%");
-                ImageStatusPacket.SendPacket(stream, image, cpuValue, ramValue, gpuValue);
+                ImageStatusPacket packet = new ImageStatusPacket();
+                packet.cpuUsage = cpuValue;
+                packet.ramUsage = ramValue;
+                packet.gpuUsage = gpuValue;
+                //packet.image = image;
+                packet.SendBytes(stream);
 
                 Thread.Sleep(delay);
             }
@@ -85,53 +91,40 @@ namespace LEDManager
         }
     }
 
-    public static class ImageStatusPacket
+    [ProtoContract(SkipConstructor = true)]
+    public class ImageStatusPacket
     {
-        const string type = "ImageStatus";
-        struct Data
+        [ProtoMember(1)] public float cpuUsage { get; set; }
+        [ProtoMember(2)] public float ramUsage { get; set; }
+        [ProtoMember(3)] public float gpuUsage { get; set; }
+        //[ProtoMember(4)] public Bitmap image { get; set; }
+
+        public static byte[] ProtoSerialize<T>(T record) where T : class
         {
-            public float cpuUsage;
-            public float ramUsage;
-            public float gpuUsage;
+            if (null == record) return null;
+
+            try
+            {
+                using (var stream = new MemoryStream())
+                {
+                    Serializer.Serialize(stream, record);
+                    return stream.ToArray();
+                }
+            }
+            catch
+            {
+                // Log error
+                throw;
+            }
         }
 
-        public static void SendPacket(Stream stream, Bitmap image, float cpuUsage, float ramUsage, float gpuUsage)
+        public void SendBytes(Stream stream)
         {
-            Data data = new Data();
-            //data.image = image;
-            data.cpuUsage = cpuUsage;
-            data.ramUsage = ramUsage;
-            data.gpuUsage = gpuUsage;
+            byte[] byteArray = ProtoSerialize<ImageStatusPacket>(this);
 
-
-            int size = Marshal.SizeOf(data);
-            byte[] dataBytes = new byte[size];
-
-            IntPtr ptr = Marshal.AllocHGlobal(size);
-            Marshal.StructureToPtr(data, ptr, true);
-            Marshal.Copy(ptr, dataBytes, 0, size);
-            Marshal.FreeHGlobal(ptr);
-
-            byte[] typeBytes = Encoding.ASCII.GetBytes(type);
-
-            MemoryStream ms = new MemoryStream();
-            image.Save(ms, ImageFormat.Jpeg);
-            // read to end
-            byte[] imageBytes = ms.GetBuffer();
-            image.Dispose();
-            ms.Close();
-
-            SendBytes(stream, typeBytes);
-            SendBytes(stream, dataBytes);
-            SendBytes(stream, BitConverter.GetBytes(imageBytes.Length));
-            SendBytes(stream, imageBytes);
-        }
-
-        public static void SendBytes(Stream stream, byte[] bytes)
-        {
             if (stream.CanWrite)
             {
-                stream.Write(bytes, 0, bytes.Length);
+                stream.Write(byteArray, 0, byteArray.Length);
             }
             else
             {
