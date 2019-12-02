@@ -25,19 +25,12 @@ class Color:
 
 
 
-class ImageStatusPacket:
-  def __init__(self, data, pastData):
-    try:
-      data = struct.unpack("fff", data)
-      self.cpuUsage = round(data[0])
-      self.ramUsage = round(data[1])
-      self.gpuUsage = round(data[2])
-    except:
-      print("Unpack error")
-      self.cpuUsage = pastData.cpuUsage
-      self.ramUsage = pastData.ramUsage
-      self.gpuUsage = pastData.gpuUsage
-      packetError()
+class StatusPacket:
+  def __init__(self, data):
+    data = struct.unpack("fff", data)
+    self.cpuUsage = round(data[0])
+    self.ramUsage = round(data[1])
+    self.gpuUsage = round(data[2])
 
   def toString(self):
     return "ImageStatus: " + str(self.cpuUsage) + "% " + str(self.ramUsage) + "% " + str(self.gpuUsage) + "%"
@@ -158,14 +151,11 @@ def getDominantColor(im):
   color = Color(0,rawcolor[0],rawcolor[1],rawcolor[2])
   return color
 
-socketSize = 999999999
-conn_ = None
-def packetError():
-  misaligned = conn_.recv(socketSize)
 
 def __main__():
   HOST = "127.0.0.1"
   PORT = 2610
+  socketSize = 999999999
 
   grid = Grid()
   gridDisplay = GridDisplay(grid)
@@ -177,34 +167,28 @@ def __main__():
     print("Waiting for Connection...")
     conn, addr = sock.accept()
 
-    lastStatusPacket = None
+    dataPacket = None
+    color = None
     with conn:
       conn_ = conn
       print('Connected by', addr)
       while True:
-        try:          
-          packetData  = conn.recv(socketSize)
-          packetImage = conn.recv(socketSize)
-          
-          if not packetData or not packetImage:
-            break
-
-          packet = ImageStatusPacket(packetData, lastStatusPacket)
-          lastStatusPacket = packet
-          print(packet.toString())
-          grid.setBG(Color(255, 0, 0, 0))
-          grid.drawOutlines()
-          grid.drawBars(packet.cpuUsage, packet.ramUsage, packet.gpuUsage)
+        try:     
+          packet = conn.recv(socketSize)
 
           try:
-            image = Image.open(io.BytesIO(packetImage))
+            dataPacket = StatusPacket(packet)
+            print(dataPacket.toString())
+        
           except:
-            packetError()
-
-          #image.show()
-          color = getDominantColor(image)
+            image = Image.open(io.BytesIO(packet))
+            color = getDominantColor(image)       
+            #image.show()
+          
+          grid.setBG(Color(255, 0, 0, 0))
+          grid.drawBars(dataPacket.cpuUsage, dataPacket.ramUsage, dataPacket.gpuUsage)   
+          grid.drawOutlines()       
           grid.drawOutline(color)
-
           gridDisplay.update()
 
 
