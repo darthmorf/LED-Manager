@@ -17,6 +17,7 @@ namespace LEDManager
 {
     class Program
     {
+        public const bool doImage = false;
         public static void Main(string[] args)
         {
             PerformanceCounter cpuCounter;
@@ -41,14 +42,22 @@ namespace LEDManager
 
             while (true)
             { 
-                image = new Bitmap(CaptureWindow(User32.GetDesktopWindow()));
 
                 cpuValue = cpuCounter.NextValue();
                 ramValue = ramCounter.NextValue();
                 gpuValue = gpuCounter.GetGpuInfo();
 
                 Console.WriteLine($"{cpuValue}% {ramValue}% {gpuValue}%");
-                ImageStatusPacket.SendPacket(stream, image, cpuValue, ramValue, gpuValue);
+
+                if (doImage)
+                {
+                    image = new Bitmap(CaptureWindow(User32.GetDesktopWindow()));
+                    StatusPacket.SendImagePacket(stream, image, cpuValue, ramValue, gpuValue);
+                }
+                else
+                {
+                    StatusPacket.SendPacket(stream, cpuValue, ramValue, gpuValue);
+                }
 
                 Thread.Sleep(delay);
             }
@@ -85,7 +94,7 @@ namespace LEDManager
         }
     }
 
-    public static class ImageStatusPacket
+    public static class StatusPacket
     {
         struct Data
         {
@@ -94,7 +103,7 @@ namespace LEDManager
             public float gpuUsage;
         }
 
-        public static void SendPacket(Stream stream, Bitmap image, float cpuUsage, float ramUsage, float gpuUsage)
+        public static void SendImagePacket(Stream stream, Bitmap image, float cpuUsage, float ramUsage, float gpuUsage)
         {
             Data data = new Data();
             //data.image = image;
@@ -120,6 +129,26 @@ namespace LEDManager
 
             SendBytes(stream, dataBytes);
             SendBytes(stream, imageBytes);
+        }
+
+        public static void SendPacket(Stream stream, float cpuUsage, float ramUsage, float gpuUsage)
+        {
+            Data data = new Data();
+            //data.image = image;
+            data.cpuUsage = cpuUsage;
+            data.ramUsage = ramUsage;
+            data.gpuUsage = gpuUsage;
+
+
+            int size = Marshal.SizeOf(data);
+            byte[] dataBytes = new byte[size];
+
+            IntPtr ptr = Marshal.AllocHGlobal(size);
+            Marshal.StructureToPtr(data, ptr, true);
+            Marshal.Copy(ptr, dataBytes, 0, size);
+            Marshal.FreeHGlobal(ptr);
+
+            SendBytes(stream, dataBytes);
         }
 
         public static void SendBytes(Stream stream, byte[] bytes)

@@ -168,7 +168,7 @@ def __main__():
     conn, addr = sock.accept()
 
     dataPacket = None
-    color = None
+    color = Color(255, 0, 0, 0)
     with conn:
       conn_ = conn
       print('Connected by', addr)
