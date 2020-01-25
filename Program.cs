@@ -18,6 +18,8 @@ namespace LEDManager
     class Program
     {
         public const bool doImage = false;
+        public const string serverIp = "129.11.102.134";
+        public const int serverPort = 2610;
         public static void Main(string[] args)
         {
             PerformanceCounter cpuCounter;
@@ -34,11 +36,12 @@ namespace LEDManager
 
             TcpClient client = new TcpClient();
             Console.WriteLine("Connecting.....");
-            client.Connect("127.0.0.1", 2610);
+            client.Connect(serverIp, serverPort);
 
             Stream stream = client.GetStream();
 
             int delay = 250;
+            gpuCounter.InitGpuInfo();
 
             while (true)
             { 
