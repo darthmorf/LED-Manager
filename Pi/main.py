@@ -139,28 +139,34 @@ def __main__():
   
   with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as sock:
     sock.bind((HOST, PORT))
-    sock.listen()
-    print("Waiting for Connection...")
-    conn, addr = sock.accept()
+    
+    while True:
+      grid.setBG(Color(255, 0, 0, 0))   
+      gridDisplay.update()
+      sock.listen()
+      print("Waiting for Connection...")
+      conn, addr = sock.accept()
 
-    dataPacket = None
-    with conn:
-      conn_ = conn
-      print('Connected by', addr)
-      while True:
-        try:     
-          packet = conn.recv(socketSize)
+      dataPacket = None
+      with conn:
+        conn_ = conn
+        print('Connected by', addr)
+        while True:
+          try:     
+            packet = conn.recv(socketSize)
+            
+            if str(packet) == "b''":
+              break
+            dataPacket = StatusPacket(packet)
+            print(dataPacket.toString())
+          
+            grid.setBG(Color(255, 0, 0, 0))
+            grid.drawBars(dataPacket.cpuUsage, dataPacket.ramUsage, dataPacket.gpuUsage)   
+            grid.drawOutlines()      
+            gridDisplay.update()
 
-          dataPacket = StatusPacket(packet)
-          print(dataPacket.toString())
-        
-          grid.setBG(Color(255, 0, 0, 0))
-          grid.drawBars(dataPacket.cpuUsage, dataPacket.ramUsage, dataPacket.gpuUsage)   
-          grid.drawOutlines()      
-          gridDisplay.update()
 
-
-        except Exception as e: print(e)
+          except Exception as e: print(e)
     
 
 
