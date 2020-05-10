@@ -1,3 +1,9 @@
+#!/usr/bin/env python
+
+from threading import Thread
+import time
+import sys
+
 class Color:
   def __init__(self, r, g, b):
     self.r = r
@@ -47,12 +53,15 @@ class Grid:
       for x in range(self.width):
         self.values[y][x] = color
 
+  def clear(self):
+    self.setBG(Color(0,0,0))
+
   def setPixel(self, x, y, color):
-    if x > self.width:
-      print(x + " is out of bounds.")
+    if x >= self.width:
+      print(str(x) + " is out of bounds.")
       return
-    if y > self.height:
-      print(y + " is out of bounds.")
+    if y >= self.height:
+      print(str(y) + " is out of bounds.")
       return
 
     self.values[y][x] = color
@@ -60,7 +69,8 @@ class Grid:
   def update(self):
     if self.debug:
       self.pygame.event.get()
-      self.surface.fill((255,0,255))
+      self.surface.fill((0,0,0))
+      #self.surface.fill((255,0,255))
       x = 0
       y = 0
 
@@ -76,7 +86,8 @@ class Grid:
       self.canvas.Clear()
       for i in range(self.height):
         for j in range(self.width):
-          self.canvas.SetPixel(j, i, self.values[i][j].r, self.values[i][j].g, self.values[i][j].b)
+          if self.values[i][j].toRGB() != (0,0,0):
+            self.canvas.SetPixel(j, i, self.values[i][j].r, self.values[i][j].g, self.values[i][j].b)
 
       self.canvas = self.matrix.SwapOnVSync(self.canvas)
 
@@ -84,11 +95,29 @@ class Grid:
 def __main__():
 
   grid = Grid(True)
-  grid.setBG(Color(0,0,255))
-  grid.setPixel(10, 10, Color(255,0,0))
 
-  while True:
-    grid.update()
+  try:
+    print("Running LED Manager. Pres Ctrl+C to quit.")
+
+    x = 0
+    y = 0
+    while True:
+
+      grid.clear()
+
+      grid.setPixel(x, y, Color(255,255,255))
+      x += 1
+      if x == grid.width:
+        y += 1
+      x = x % grid.width
+      y = y % grid.height
+
+      grid.update()
+      time.sleep(1/120)
+
+  except KeyboardInterrupt:
+    sys.exit(0)
+
 
 __main__()
  
