@@ -5,7 +5,7 @@ import draw
 import time
 import sys
 
-DEBUG = True
+DEBUG = False
 
 class Color:
   def __init__(self, r, g, b):
@@ -128,7 +128,7 @@ def __main__():
         g -= step
 
       draw.clock(Color(255,255,255), grid)
-      draw.clockDay(6, Color(255,255,255), grid)
+      draw.clockDay(Color(255,255,255), grid)
       #grid.setPixel(x, y, Color(255,255,255))
       #x += 1
       #if x == grid.width:
