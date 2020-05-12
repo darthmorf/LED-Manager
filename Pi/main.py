@@ -110,10 +110,11 @@ def __main__():
     g = 0
     b = 0
 
+    i = 1
     while True:
 
       grid.clear()
-      step = 5
+      step = 15
       if r == 255 and b < 255 and g ==0:
         b += step
       elif b == 255 and g == 0 and r <= 255 and r > 0:
@@ -127,8 +128,12 @@ def __main__():
       elif b == 0 and r == 255 and g <= 255 and g > 0:
         g -= step
 
-      draw.clock(Color(255,255,255), grid)
-      draw.clockDay(Color(255,255,255), grid)
+      color = Color(r,g,b)
+      # = Color(255,255,255)
+      draw.clock(color, grid)
+      daywidth = draw.clockDay(color, grid)
+  
+      draw.clockDate(color, grid, daywidth)
       #grid.setPixel(x, y, Color(255,255,255))
       #x += 1
       #if x == grid.width:
@@ -137,7 +142,7 @@ def __main__():
       #y = y % grid.height
 
       grid.update()
-      time.sleep(1/120)
+      time.sleep(1/1)
 
   except KeyboardInterrupt:
     sys.exit(0)
