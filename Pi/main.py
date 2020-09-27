@@ -26,6 +26,7 @@ class Grid:
     self.height = 32
     defaultColor = Color(0,0,0)
     self.values = []
+    self.oldvalues = []
 
     for y in range(self.height):
       row = []
@@ -45,13 +46,18 @@ class Grid:
       options = RGBMatrixOptions()
       options.rows = self.height
       options.cols = self.width
-      options.parallel = 1
+      options.brightness = 5
       options.hardware_mapping = 'adafruit-hat'
 
       self.matrix = RGBMatrix(options = options)
       self.canvas = self.matrix.CreateFrameCanvas()
 
   def update(self):
+    if self.values == self.oldvalues:
+      return
+    
+    self.oldvalues = self.values
+
     if self.debug:
       self.pygame.event.get()
       self.surface.fill((0,0,0))
@@ -67,6 +73,7 @@ class Grid:
         y += self.pixelModifier + 1
       
       self.pygame.display.flip()
+
     else:
       self.canvas.Clear()
       for i in range(self.height):
@@ -107,8 +114,10 @@ def __main__():
     y = 0
 
     r = 255
-    g = 0
-    b = 0
+    g = 255
+    b = 255
+
+    brightness = 1
 
     i = 1
     while True:
@@ -128,8 +137,8 @@ def __main__():
       elif b == 0 and r == 255 and g <= 255 and g > 0:
         g -= step
 
-      color = Color(r,g,b)
-      # = Color(255,255,255)
+      #color = Color(r,g,b)
+      color = Color(255*brightness,255*brightness,255*brightness)
       draw.clock(color, grid)
       daywidth = draw.clockDay(color, grid)
   
