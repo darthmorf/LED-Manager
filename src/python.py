@@ -8,7 +8,7 @@ def __main__():
 
 	pixelcount = 64 * 32
 
-	randbg(sock, pixelcount)
+	randcolor(sock, pixelcount)
 
 	sock.close()
 

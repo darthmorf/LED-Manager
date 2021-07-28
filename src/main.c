@@ -11,12 +11,8 @@
 #include <sys/socket.h>
 #include <netinet/in.h>
 #include <signal.h>
-
-struct colour {
-  int r;
-  int g;
-  int b;
-};
+#include <time.h>
+#include "draw.c"
 
 int setupSocket()
 {
@@ -47,8 +43,14 @@ void bindSocket(struct sockaddr_in serv_addr, int sockfd)
 
 void idleDisplay(struct LedCanvas *offscreen_canvas, struct RGBLedMatrix *matrix, int width, int height)
 {
-  led_canvas_fill(offscreen_canvas, 0, 166, 166);
-  offscreen_canvas = led_matrix_swap_on_vsync(matrix, offscreen_canvas);
+  struct colour clockColour;
+  clockColour.r = 252;
+  clockColour.g = 234;
+  clockColour.b = 207;
+
+  led_canvas_clear(offscreen_canvas);
+  drawClock(clockColour, offscreen_canvas);
+  led_matrix_swap_on_vsync(matrix, offscreen_canvas);
 }
 
 int main(int argc, char **argv) 
@@ -83,6 +85,8 @@ int main(int argc, char **argv)
   options.chain_length = 2;
   //options.limit_refresh_rate_hz = 60;
   options.hardware_mapping = "adafruit-hat-pwm";
+
+  initDraw();
 
   matrix = led_matrix_create_from_options(&options, &argc, &argv);
   if (matrix == NULL)
