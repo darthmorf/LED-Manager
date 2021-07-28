@@ -95,16 +95,8 @@ int main(int argc, char **argv)
 
   fprintf(stderr, "Size: %dx%d. Hardware gpio mapping: %s\n", width, height, options.hardware_mapping);
 
-  while (1 == 1) 
+  while (1) 
   {
-     /*for (y = 0; y < height; ++y) 
-     {
-      for (x = 0; x < width; ++x) 
-      {
-        led_canvas_set_pixel(offscreen_canvas, x, y, 255, 255, 255);        
-      }
-    }*/
-
     offscreen_canvas = led_matrix_swap_on_vsync(matrix, offscreen_canvas);
     
   
