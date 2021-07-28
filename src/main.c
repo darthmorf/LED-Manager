@@ -49,7 +49,7 @@ void bindSocket(struct sockaddr_in serv_addr, int sockfd)
 int main(int argc, char **argv) 
 {
   // Server Variables
-  int sockfd, newsockfd, clilen, n;
+  int sockfd, newsockfd, clilen, readSize;
   int portno = 2626;
   int gridCount = 64 * 32;
   int bufferSize = 12 * gridCount;
@@ -68,13 +68,6 @@ int main(int argc, char **argv)
   sockfd = setupSocket();
   setupSocketAddress(&serv_addr, portno);
   bindSocket(serv_addr, sockfd); 
-
-  fprintf(stderr, "Waiting for client...\n");
-  listen(sockfd, 5);
-  clilen = sizeof(cli_addr);
-  newsockfd = accept(sockfd, (struct sockaddr *) &cli_addr, &clilen);
-  if (newsockfd < 0)
-    fprintf(stderr, "ERROR on accept\n");
 
 
   // Initialise Panel
@@ -95,18 +88,24 @@ int main(int argc, char **argv)
 
   fprintf(stderr, "Size: %dx%d. Hardware gpio mapping: %s\n", width, height, options.hardware_mapping);
 
-  while (1) 
+  while (1)
   {
-    offscreen_canvas = led_matrix_swap_on_vsync(matrix, offscreen_canvas);
+
+    fprintf(stderr, "Waiting for client...\n");
+    listen(sockfd, 5);
+    clilen = sizeof(cli_addr);
+    newsockfd = accept(sockfd, (struct sockaddr *) &cli_addr, &clilen);
+    if (newsockfd < 0)
+      fprintf(stderr, "ERROR on accept\n");
+
+    fprintf(stderr, "Client Connected.\n");
     
-  
-    bzero(buffer, bufferSize);
-    n = read(newsockfd, buffer, bufferSize-1);
-
-    int i = 0;
-
-    if (n > 0) 
+    while ((readSize = read(newsockfd, buffer, bufferSize-1)) > 0) 
     {
+      offscreen_canvas = led_matrix_swap_on_vsync(matrix, offscreen_canvas);
+
+      int i = 0;
+      
       const char *seperator = ",";
       char *rgbItem;
 
@@ -141,7 +140,11 @@ int main(int argc, char **argv)
           j++;
         }
       }
+
+      bzero(buffer, bufferSize);
     }
+
+    fprintf(stderr, "Client disconnected.\n");
   }
 
   led_matrix_delete(matrix);
