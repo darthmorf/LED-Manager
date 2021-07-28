@@ -13,44 +13,68 @@
 #include <sys/socket.h>
 #include <netinet/in.h>
 
+struct colour {
+  int r;
+  int g;
+  int b;
+};
+
+int setupSocket()
+{
+  int sockfd;
+
+  fprintf(stderr, "Opening Socket...\n");
+  sockfd = socket(AF_INET, SOCK_STREAM, 0);
+  if (sockfd < 0)
+    fprintf(stderr, "ERROR opening socket\n");
+
+  return sockfd;
+}
+
+void setupSocketAddress(struct sockaddr_in * serv_addr, int portno)
+{
+  bzero((char *) serv_addr, sizeof(serv_addr));
+  serv_addr->sin_family = AF_INET;
+  serv_addr->sin_port = htons(portno);
+  serv_addr->sin_addr.s_addr = INADDR_ANY;
+}
+
+void bindSocket(struct sockaddr_in serv_addr, int sockfd)
+{
+  fprintf(stderr, "Binding...\n");
+  if (bind(sockfd, (struct sockaddr *) &serv_addr, sizeof(serv_addr)) < 0)
+    fprintf(stderr, "ERROR on binding\n");
+}
 
 int main(int argc, char **argv) 
 {
+  // Server Variables
+  int sockfd, newsockfd, clilen, n;
+  int portno = 2626;
+  int gridCount = 64 * 32;
+  int bufferSize = 12 * gridCount;
+  char buffer[bufferSize];
+  struct sockaddr_in serv_addr, cli_addr;
+
   // Panel Variables
   struct RGBLedMatrixOptions options;
   struct RGBLedMatrix *matrix;
   struct LedCanvas *offscreen_canvas;
   int width, height, x, y;
-  int r = 255, g = 255, b = 255;
-
-  // Server Variables
-  int sockfd, newsockfd, portno, clilen, n;
-  char buffer[256];
-  struct sockaddr_in serv_addr, cli_addr;
+  struct colour canvas[gridCount];
   
 
   // Setup Server
-  fprintf(stderr, "Opening Socket...\n");
-  sockfd = socket(AF_INET, SOCK_STREAM, 0);
-  if (sockfd < 0)
-    fprintf(stderr, "ERROR opening socket");
-
-  bzero((char *) &serv_addr, sizeof(serv_addr));
-  portno = 2626;
-  serv_addr.sin_family = AF_INET;
-  serv_addr.sin_port = htons(portno);
-  serv_addr.sin_addr.s_addr = INADDR_ANY;
-
-  fprintf(stderr, "Binding...\n");
-  if (bind(sockfd, (struct sockaddr *) &serv_addr, sizeof(serv_addr)) < 0)
-    fprintf(stderr, "ERROR on binding");
+  sockfd = setupSocket();
+  setupSocketAddress(&serv_addr, portno);
+  bindSocket(serv_addr, sockfd); 
 
   fprintf(stderr, "Waiting for client...\n");
   listen(sockfd, 5);
   clilen = sizeof(cli_addr);
   newsockfd = accept(sockfd, (struct sockaddr *) &cli_addr, &clilen);
   if (newsockfd < 0)
-    fprintf(stderr, "ERROR on accept");
+    fprintf(stderr, "ERROR on accept\n");
 
 
   // Initialise Panel
@@ -73,30 +97,58 @@ int main(int argc, char **argv)
 
   while (1 == 1) 
   {
-     for (y = 0; y < height; ++y) 
+     /*for (y = 0; y < height; ++y) 
      {
       for (x = 0; x < width; ++x) 
       {
-        led_canvas_set_pixel(offscreen_canvas, x, y, r, g, b);        
+        led_canvas_set_pixel(offscreen_canvas, x, y, 255, 255, 255);        
       }
-    }
+    }*/
 
     offscreen_canvas = led_matrix_swap_on_vsync(matrix, offscreen_canvas);
     
-    bzero(buffer, 256);
-    n = read(newsockfd, buffer, 255);
+  
+    bzero(buffer, bufferSize);
+    n = read(newsockfd, buffer, bufferSize-1);
+
+    int i = 0;
 
     if (n > 0) 
     {
-	    fprintf(stderr, "%s\n", buffer);
+      const char *seperator = ",";
+      char *rgbItem;
 
-      char *token = strtok(buffer, ",");
-      r = atoi(token);
-      token = strtok(NULL, ",");
-      g = atoi(token);
-      token = strtok(NULL, ",");
-      b = atoi(token);
-	    fprintf(stderr, "RGB: %d,%d,%d\n", r, g, b);
+      rgbItem = strtok(buffer, seperator);
+      canvas[i].r = atoi(rgbItem);
+
+      rgbItem = strtok(NULL, seperator);
+      canvas[i].g = atoi(rgbItem);
+
+      rgbItem = strtok(NULL, seperator);
+      canvas[i].b = atoi(rgbItem);
+      i++;
+
+      while (rgbItem = strtok(NULL, seperator))
+      {
+        canvas[i].r = atoi(rgbItem);
+
+        rgbItem = strtok(NULL, seperator);
+        canvas[i].g = atoi(rgbItem);
+
+        rgbItem = strtok(NULL, seperator);
+        canvas[i].b = atoi(rgbItem);
+        i++;
+      }
+
+      int j = 0;
+      for (x = 0; x < width; ++x)
+      {
+        for (y = 0; y < height; ++y) 
+        {
+          led_canvas_set_pixel(offscreen_canvas, x, y, canvas[j].r, canvas[j].b, canvas[j].g);
+          j++;
+        }
+      }
     }
   }
 
