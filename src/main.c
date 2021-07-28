@@ -4,14 +4,13 @@
  *
  */
 #include "led-matrix-c.h"
-
 #include <stdio.h>
 #include <string.h>
 #include <unistd.h>
-
 #include <sys/types.h>
 #include <sys/socket.h>
 #include <netinet/in.h>
+#include <signal.h>
 
 struct colour {
   int r;
@@ -46,6 +45,12 @@ void bindSocket(struct sockaddr_in serv_addr, int sockfd)
     fprintf(stderr, "ERROR on binding\n");
 }
 
+void idleDisplay(struct LedCanvas *offscreen_canvas, struct RGBLedMatrix *matrix, int width, int height)
+{
+  led_canvas_fill(offscreen_canvas, 0, 166, 166);
+  offscreen_canvas = led_matrix_swap_on_vsync(matrix, offscreen_canvas);
+}
+
 int main(int argc, char **argv) 
 {
   // Server Variables
@@ -55,6 +60,8 @@ int main(int argc, char **argv)
   int bufferSize = 12 * gridCount;
   char buffer[bufferSize];
   struct sockaddr_in serv_addr, cli_addr;
+  fd_set rd;
+  struct timeval timeout;
 
   // Panel Variables
   struct RGBLedMatrixOptions options;
@@ -68,7 +75,6 @@ int main(int argc, char **argv)
   sockfd = setupSocket();
   setupSocketAddress(&serv_addr, portno);
   bindSocket(serv_addr, sockfd); 
-
 
   // Initialise Panel
   fprintf(stderr, "Initialising Panel...\n");
@@ -88,39 +94,41 @@ int main(int argc, char **argv)
 
   fprintf(stderr, "Size: %dx%d. Hardware gpio mapping: %s\n", width, height, options.hardware_mapping);
 
+  fprintf(stderr, "Waiting for client...\n");
+
   while (1)
   {
-
-    fprintf(stderr, "Waiting for client...\n");
     listen(sockfd, 5);
     clilen = sizeof(cli_addr);
-    newsockfd = accept(sockfd, (struct sockaddr *) &cli_addr, &clilen);
-    if (newsockfd < 0)
-      fprintf(stderr, "ERROR on accept\n");
 
-    fprintf(stderr, "Client Connected.\n");
-    
-    while ((readSize = read(newsockfd, buffer, bufferSize-1)) > 0) 
+    FD_ZERO(& rd);
+    FD_SET(sockfd, & rd);
+
+    timeout.tv_sec = 0.5;
+    timeout.tv_usec = 0;
+    int rv = select(sockfd + 1, &rd, NULL, NULL, &timeout);
+    if( rv == 0)
     {
-      offscreen_canvas = led_matrix_swap_on_vsync(matrix, offscreen_canvas);
+      idleDisplay(offscreen_canvas, matrix, width, height);
+    }
+    else
+    {
+      newsockfd = accept(sockfd, (struct sockaddr *) &cli_addr, &clilen);
+      if (newsockfd < 0)
+        fprintf(stderr, "ERROR on accept\n");
 
-      int i = 0;
+      fprintf(stderr, "Client Connected.\n");
       
-      const char *seperator = ",";
-      char *rgbItem;
-
-      rgbItem = strtok(buffer, seperator);
-      canvas[i].r = atoi(rgbItem);
-
-      rgbItem = strtok(NULL, seperator);
-      canvas[i].g = atoi(rgbItem);
-
-      rgbItem = strtok(NULL, seperator);
-      canvas[i].b = atoi(rgbItem);
-      i++;
-
-      while (rgbItem = strtok(NULL, seperator))
+      while ((readSize = read(newsockfd, buffer, bufferSize-1)) > 0) 
       {
+        offscreen_canvas = led_matrix_swap_on_vsync(matrix, offscreen_canvas);
+
+        int i = 0;
+        
+        const char *seperator = ",";
+        char *rgbItem;
+
+        rgbItem = strtok(buffer, seperator);
         canvas[i].r = atoi(rgbItem);
 
         rgbItem = strtok(NULL, seperator);
@@ -129,22 +137,35 @@ int main(int argc, char **argv)
         rgbItem = strtok(NULL, seperator);
         canvas[i].b = atoi(rgbItem);
         i++;
-      }
 
-      int j = 0;
-      for (x = 0; x < width; ++x)
-      {
-        for (y = 0; y < height; ++y) 
+        while (rgbItem = strtok(NULL, seperator))
         {
-          led_canvas_set_pixel(offscreen_canvas, x, y, canvas[j].r, canvas[j].b, canvas[j].g);
-          j++;
+          canvas[i].r = atoi(rgbItem);
+
+          rgbItem = strtok(NULL, seperator);
+          canvas[i].g = atoi(rgbItem);
+
+          rgbItem = strtok(NULL, seperator);
+          canvas[i].b = atoi(rgbItem);
+          i++;
         }
+
+        int j = 0;
+        for (x = 0; x < width; ++x)
+        {
+          for (y = 0; y < height; ++y) 
+          {
+            led_canvas_set_pixel(offscreen_canvas, x, y, canvas[j].r, canvas[j].b, canvas[j].g);
+            j++;
+          }
+        }
+
+        bzero(buffer, bufferSize);
       }
+      fprintf(stderr, "Client disconnected.\n");
+      fprintf(stderr, "Waiting for client...\n");
+    }    
 
-      bzero(buffer, bufferSize);
-    }
-
-    fprintf(stderr, "Client disconnected.\n");
   }
 
   led_matrix_delete(matrix);
