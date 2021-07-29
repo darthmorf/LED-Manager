@@ -100,6 +100,8 @@ int main(int argc, char **argv)
 
   fprintf(stderr, "Waiting for client...\n");
 
+  idleDisplay(offscreen_canvas, matrix, width, height);
+
   while (1)
   {
     listen(sockfd, 5);
@@ -108,7 +110,7 @@ int main(int argc, char **argv)
     FD_ZERO(& rd);
     FD_SET(sockfd, & rd);
 
-    timeout.tv_sec = 0.5;
+    timeout.tv_sec = 5;
     timeout.tv_usec = 0;
     int rv = select(sockfd + 1, &rd, NULL, NULL, &timeout);
     if( rv == 0)

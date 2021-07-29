@@ -1,17 +1,19 @@
 
 #include <stdio.h>
 
-const char *bigDigits[10];
-const char *big0[18];
-const char *big1[18];
-const char *big2[18];
-const char *big3[18];
-const char *big4[18];
-const char *big5[18];
-const char *big6[18];
-const char *big7[18];
-const char *big8[18];
-const char *big9[18];
+#define bigDigitHeight 18
+
+char ***bigDigits[10];
+char **big0[bigDigitHeight];
+char **big1[bigDigitHeight];
+char **big2[bigDigitHeight];
+char **big3[bigDigitHeight];
+char **big4[bigDigitHeight];
+char **big5[bigDigitHeight];
+char **big6[bigDigitHeight];
+char **big7[bigDigitHeight];
+char **big8[bigDigitHeight];
+char **big9[bigDigitHeight];
 
 void setupChars()
 {
