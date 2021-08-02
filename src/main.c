@@ -72,6 +72,8 @@ int main(int argc, char **argv)
   int width, height, x, y;
   struct colour canvas[gridCount];
   
+  // Sync Datetime
+  system("sudo date -s \"$(wget -qSO- --max-redirect=0 google.com 2>&1 | grep Date: | cut -d' ' -f5-8)Z\"");
 
   // Setup Server
   sockfd = setupSocket();
