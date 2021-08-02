@@ -58,7 +58,7 @@ void clockColon(struct colour drawColour, struct LedCanvas *offscreen_canvas)
     led_canvas_set_pixel(offscreen_canvas, 32, 17, drawColour.r, drawColour.g, drawColour.b);
 }
 
-void weekday(struct colour drawColour, struct LedCanvas *offscreen_canvas, int weekdayIndex)
+int weekday(struct colour drawColour, struct LedCanvas *offscreen_canvas, int weekdayIndex)
 {
     int x = 3;
     int y = 22;
@@ -73,6 +73,27 @@ void weekday(struct colour drawColour, struct LedCanvas *offscreen_canvas, int w
                 led_canvas_set_pixel(offscreen_canvas, x+j, y+i, drawColour.r, drawColour.g, drawColour.b);
         }
     }
+
+    return dayWidths[weekdayIndex];
+}
+
+int date(struct colour drawColour, struct LedCanvas *offscreen_canvas, int dayWidth, int value)
+{
+    int x = dayWidth + 6;
+    int y = 23;
+
+    char **digit = smallDigits[value];
+
+    for (int i = 0; i < smallDigitHeight; i++)
+    {
+        for (int j = 0; j < smallDigitWidths[value]; j++)
+        {
+            if(digit[i][j] == '1')
+                led_canvas_set_pixel(offscreen_canvas, x+j, y+i, drawColour.r, drawColour.g, drawColour.b);
+        }
+    }
+
+    return smallDigitWidths[value];
 }
 
 void drawClock(struct colour drawColour, struct LedCanvas *offscreen_canvas)
@@ -97,7 +118,23 @@ void drawClock(struct colour drawColour, struct LedCanvas *offscreen_canvas)
 
     clockColon(drawColour, offscreen_canvas);
 
-    weekday(drawColour, offscreen_canvas, tm->tm_wday);
+    int dayWidth = weekday(drawColour, offscreen_canvas, tm->tm_wday);
+
+    int dateWidth;
+
+    if (tm->tm_mday < 10)
+    {
+        dateWidth = date(drawColour, offscreen_canvas, dayWidth, tm->tm_mday);
+    }
+    else
+    {
+        sprintf(timeBuffer, "%d", tm->tm_mday);
+
+        dateWidth = date(drawColour, offscreen_canvas, dayWidth, timeBuffer[0] - '0');
+        dateWidth += date(drawColour, offscreen_canvas, dayWidth+dateWidth+1, timeBuffer[1] - '0');
+    }
+
+    
 }
 
 
