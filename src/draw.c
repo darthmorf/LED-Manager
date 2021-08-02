@@ -30,7 +30,7 @@ void clockDigit(int index, int value, struct colour drawColour, struct LedCanvas
 
    char **digit = bigDigits[value];
    
-    for (int i = 0; i < 18; i++)
+    for (int i = 0; i < bigDigitHeight; i++)
     {
         for (int j = 0; j < 10; j++)
         {
@@ -58,6 +58,23 @@ void clockColon(struct colour drawColour, struct LedCanvas *offscreen_canvas)
     led_canvas_set_pixel(offscreen_canvas, 32, 17, drawColour.r, drawColour.g, drawColour.b);
 }
 
+void weekday(struct colour drawColour, struct LedCanvas *offscreen_canvas, int weekdayIndex)
+{
+    int x = 3;
+    int y = 22;
+
+    char **weekday = days[weekdayIndex];
+
+    for (int i = 0; i < dayHeight; i++)
+    {
+        for (int j = 0; j < dayWidths[weekdayIndex]; j++)
+        {
+            if(weekday[i][j] == '1')
+                led_canvas_set_pixel(offscreen_canvas, x+j, y+i, drawColour.r, drawColour.g, drawColour.b);
+        }
+    }
+}
+
 void drawClock(struct colour drawColour, struct LedCanvas *offscreen_canvas)
 {
     time_t now;
@@ -79,6 +96,8 @@ void drawClock(struct colour drawColour, struct LedCanvas *offscreen_canvas)
     clockDigit(3, timeBuffer[3] - '0', drawColour, offscreen_canvas);
 
     clockColon(drawColour, offscreen_canvas);
+
+    weekday(drawColour, offscreen_canvas, tm->tm_wday);
 }
 
 

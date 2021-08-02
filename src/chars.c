@@ -2,18 +2,31 @@
 #include <stdio.h>
 
 #define bigDigitHeight 18
+#define dayHeight 9
 
-char ***bigDigits[10];
-char **big0[bigDigitHeight];
-char **big1[bigDigitHeight];
-char **big2[bigDigitHeight];
-char **big3[bigDigitHeight];
-char **big4[bigDigitHeight];
-char **big5[bigDigitHeight];
-char **big6[bigDigitHeight];
-char **big7[bigDigitHeight];
-char **big8[bigDigitHeight];
-char **big9[bigDigitHeight];
+char **bigDigits[10];
+char *big0[bigDigitHeight];
+char *big1[bigDigitHeight];
+char *big2[bigDigitHeight];
+char *big3[bigDigitHeight];
+char *big4[bigDigitHeight];
+char *big5[bigDigitHeight];
+char *big6[bigDigitHeight];
+char *big7[bigDigitHeight];
+char *big8[bigDigitHeight];
+char *big9[bigDigitHeight];
+
+char **days[7];
+char *monday[dayHeight];
+char *tuesday[dayHeight];
+char *wednesday[dayHeight];
+char *thursday[dayHeight];
+char *friday[dayHeight];
+char *saturday[dayHeight];
+char *sunday[dayHeight];
+int dayWidths[] = { 27, 28, 34, 47, 38, 24, 37 };
+
+
 
 void setupChars()
 {
@@ -217,4 +230,83 @@ void setupChars()
     bigDigits[7] = big7;
     bigDigits[8] = big8;
     bigDigits[9] = big9;
+
+
+    monday[0] = "1   1             1          ";
+    monday[1] = "1   1             1          ";
+    monday[2] = "11 11  11  11   111  11  1 1 ";
+    monday[3] = "11 11 1  1 1 1 1  1    1 1 1 ";
+    monday[4] = "1 1 1 1  1 1 1 1  1   11 1 1 ";
+    monday[5] = "1 1 1 1  1 1 1 1  1  1 1   1 ";
+    monday[6] = "1 1 1  11  1 1  11 1 11 1  1 ";
+    monday[7] = "                           1 ";
+    monday[8] = "                         11  ";
+
+   tuesday[0] = "11111                   1          ";
+   tuesday[1] = "  1                     1          ";
+   tuesday[2] = "  1  1 1   11   1111  111  11  1 1 ";
+   tuesday[3] = "  1  1 1  1  1 1     1  1    1 1 1 ";
+   tuesday[4] = "  1  1 1  1111  111  1  1   11 1 1 ";
+   tuesday[5] = "  1  1 1  1        1 1  1  1 1   1 ";
+   tuesday[6] = "  1   1 1  111 1111   11 1 11 1  1 ";
+   tuesday[7] = "                                 1 ";
+   tuesday[8] = "                               11  ";
+
+    wednesday[0] = "1     1         1                    1         ";
+    wednesday[1] = "1     1         1                    1         ";
+    wednesday[2] = "1  1  1  11   111  11   11   1111  111  11  1 1";
+    wednesday[3] = " 1 1 1  1  1 1  1  1 1 1  1 1     1  1    1 1 1";
+    wednesday[4] = " 1 1 1  1111 1  1  1 1 1111  111  1  1   11 1 1";
+    wednesday[5] = "  1 1   1    1  1  1 1 1        1 1  1  1 1   1";
+    wednesday[6] = "  1 1    111  11 1 1 1  111 1111   11 1 11 1  1";
+    wednesday[7] = "                                              1";
+    wednesday[8] = "                                            11 ";
+
+    thursday[0] = "11111 1                     1         ";
+    thursday[1] = "  1   1                     1         ";
+    thursday[2] = "  1   11  1 1 1 1   1111  111  11  1 1";
+    thursday[3] = "  1   1 1 1 1  1 1 1     1  1    1 1 1";
+    thursday[4] = "  1   1 1 1 1  1    111  1  1   11 1 1";
+    thursday[5] = "  1   1 1 1 1  1       1 1  1  1 1   1";
+    thursday[6] = "  1   1 1 11 1 1   1111   11 1 11 1  1";
+    thursday[7] = "                                     1";
+    thursday[8] = "                                   11 ";
+
+    friday[0] = "1111          1         ";
+    friday[1] = "1             1         ";
+    friday[2] = "1   1 1  1  111  11  1 1";
+    friday[3] = "111  1 1   1  1    1 1 1";
+    friday[4] = "1    1   1 1  1   11 1 1";
+    friday[5] = "1    1   1 1  1  1 1   1";
+    friday[6] = "1    1   1  11 1 11 1  1";
+    friday[7] = "                       1";
+    friday[8] = "                     11 ";
+
+    saturday[0] = " 11                        1         ";
+    saturday[1] = "1  1       1               1         ";
+    saturday[2] = "1    11   111 1 1  1 1   111  11  1 1";
+    saturday[3] = " 11    1   1  1 1   1 1 1  1    1 1 1";
+    saturday[4] = "   1  11   1  1 1   1   1  1   11 1 1";
+    saturday[5] = "1  1 1 1   1  1 1   1   1  1  1 1   1";
+    saturday[6] = " 11  11 1  11  1 1  1    11 1 11 1  1";
+    saturday[7] = "                                    1";
+    saturday[8] = "                                  11 ";
+
+    sunday[0] =  " 11              1         ";
+    sunday[1] =  "1  1             1         ";
+    sunday[2] =  "1    1 1  11   111  11  1 1";
+    sunday[3] =  " 11  1 1  1 1 1  1    1 1 1";
+    sunday[4] =  "   1 1 1  1 1 1  1   11 1 1";
+    sunday[5] =  "1  1 1 1  1 1 1  1  1 1   1";
+    sunday[6] =  " 11   1 1 1 1  11 1 11 1  1";
+    sunday[7] =  "                          1";
+    sunday[8] =  "                        11 ";
+
+    days[0] = sunday;
+    days[1] = monday;
+    days[2] = tuesday;
+    days[3] = wednesday;
+    days[4] = thursday;
+    days[5] = friday;
+    days[6] = saturday;
 }
