@@ -79,7 +79,7 @@ int weekday(struct colour drawColour, struct LedCanvas *offscreen_canvas, int we
 
 int date(struct colour drawColour, struct LedCanvas *offscreen_canvas, int dayWidth, int value)
 {
-    int x = dayWidth + 6;
+    int x = dayWidth;
     int y = 23;
 
     char **digit = smallDigits[value];
@@ -96,11 +96,40 @@ int date(struct colour drawColour, struct LedCanvas *offscreen_canvas, int dayWi
     return smallDigitWidths[value];
 }
 
+void ordinal(struct colour drawColour, struct LedCanvas *offscreen_canvas, int dateWidth, int trailDigit)
+{
+    int x = dateWidth;
+    int y = 23;
+
+    int ord;
+
+    if (trailDigit > 0 && trailDigit < 4)
+    {
+        ord = trailDigit - 1;
+    }
+    else
+    {
+        ord = 3;
+    }
+
+    char **ordChar = ordinals[ord];
+
+    for (int i = 0; i < smallDigitHeight; i++)
+    {
+        for (int j = 0; j < 10; j++)
+        {
+            if(ordChar[i][j] == '1')
+                led_canvas_set_pixel(offscreen_canvas, x+j, y+i, drawColour.r, drawColour.g, drawColour.b);
+        }
+    }
+}
+
 void drawClock(struct colour drawColour, struct LedCanvas *offscreen_canvas)
 {
     time_t now;
     struct tm *tm;
     now = time(0);
+    char timeBuffer[50];
 
     if ((tm = localtime (&now)) == NULL) 
     {
@@ -108,33 +137,53 @@ void drawClock(struct colour drawColour, struct LedCanvas *offscreen_canvas)
         return;
     }
 
-    char timeBuffer[50];
-    sprintf(timeBuffer, "%d%d", tm->tm_hour, tm->tm_min);
+    sprintf(timeBuffer, "%d", tm->tm_hour);
 
-    clockDigit(0, timeBuffer[0] - '0', drawColour, offscreen_canvas);
-    clockDigit(1, timeBuffer[1] - '0', drawColour, offscreen_canvas);
-    clockDigit(2, timeBuffer[2] - '0', drawColour, offscreen_canvas);
-    clockDigit(3, timeBuffer[3] - '0', drawColour, offscreen_canvas);
+    if (tm->tm_hour < 10)
+    {
+        clockDigit(0, 0, drawColour, offscreen_canvas);
+        clockDigit(1, timeBuffer[0] - '0', drawColour, offscreen_canvas);
+    }
+    else
+    {
+        clockDigit(0, timeBuffer[0] - '0', drawColour, offscreen_canvas);
+        clockDigit(1, timeBuffer[1] - '0', drawColour, offscreen_canvas);
+    }
+
+    sprintf(timeBuffer, "%d", tm->tm_min);
+
+    if (tm->tm_min < 10)
+    {
+        clockDigit(2, 0, drawColour, offscreen_canvas);
+        clockDigit(3, timeBuffer[0] - '0', drawColour, offscreen_canvas);
+    }
+    else
+    {
+        clockDigit(2, timeBuffer[0] - '0', drawColour, offscreen_canvas);
+        clockDigit(3, timeBuffer[1] - '0', drawColour, offscreen_canvas);
+    }
 
     clockColon(drawColour, offscreen_canvas);
 
     int dayWidth = weekday(drawColour, offscreen_canvas, tm->tm_wday);
 
-    int dateWidth;
+    int trailDigit;
+    dayWidth += 6;
 
     if (tm->tm_mday < 10)
     {
-        dateWidth = date(drawColour, offscreen_canvas, dayWidth, tm->tm_mday);
+        dayWidth += date(drawColour, offscreen_canvas, dayWidth, tm->tm_mday);
+        trailDigit = tm->tm_mday;
     }
     else
     {
         sprintf(timeBuffer, "%d", tm->tm_mday);
+        dayWidth += date(drawColour, offscreen_canvas, dayWidth, timeBuffer[0] - '0');
+        dayWidth += date(drawColour, offscreen_canvas, dayWidth, timeBuffer[1] - '0');
+        trailDigit = timeBuffer[1] - '0';
+    } 
 
-        dateWidth = date(drawColour, offscreen_canvas, dayWidth, timeBuffer[0] - '0');
-        dateWidth += date(drawColour, offscreen_canvas, dayWidth+dateWidth+1, timeBuffer[1] - '0');
-    }
-
-    
+    ordinal(drawColour, offscreen_canvas, dayWidth, trailDigit); 
 }
 
 

@@ -44,9 +44,9 @@ void bindSocket(struct sockaddr_in serv_addr, int sockfd)
 void idleDisplay(struct LedCanvas *offscreen_canvas, struct RGBLedMatrix *matrix, int width, int height)
 {
   struct colour clockColour;
-  clockColour.r = 252;
-  clockColour.g = 234;
-  clockColour.b = 207;
+  clockColour.r = 255 * 0.5f;
+  clockColour.g = 198 * 0.5f;
+  clockColour.b = 74  * 0.5f;
 
   led_canvas_clear(offscreen_canvas);
   drawClock(clockColour, offscreen_canvas);

@@ -38,7 +38,13 @@ char *small6[smallDigitHeight];
 char *small7[smallDigitHeight];
 char *small8[smallDigitHeight];
 char *small9[smallDigitHeight];
-int smallDigitWidths[] = { 5, 2, 5, 4, 5, 4, 4, 4, 4 };
+int smallDigitWidths[] = { 5, 2, 5, 4, 5, 4, 4, 4, 4, 4 };
+
+char **ordinals[4];
+char *first[smallDigitHeight];
+char *second[smallDigitHeight];
+char *third[smallDigitHeight];
+char *th[smallDigitHeight];
 
 
 
@@ -415,4 +421,42 @@ void setupChars()
     smallDigits[7] = small7;
     smallDigits[8] = small8;
     smallDigits[9] = small9;
+
+
+    first[0] = "           ";
+    first[1] = "      1    ";
+    first[2] = " 111 111   ";
+    first[3] = "1     1    ";
+    first[4] = " 11   1    ";
+    first[5] = "   1  1    ";
+    first[6] = "111   11   ";
+
+    second[0] = "       1  ";
+    second[1] = "       1  ";
+    second[2] = "11   111  ";
+    second[3] = "1 1 1  1  ";
+    second[4] = "1 1 1  1  ";
+    second[5] = "1 1 1  1  ";
+    second[6] = "1 1  11 1 ";
+
+    third [0] = "        1 ";
+    third [1] = "        1 ";
+    third [2] = "1 1   111 ";
+    third [3] = " 1 1 1  1 ";
+    third [4] = " 1   1  1 ";
+    third [5] = " 1   1  1 ";
+    third [6] = " 1    11 1";
+
+    th    [0] = "    1     ";
+    th    [1] = " 1  1     ";
+    th    [2] = "111 11    ";
+    th    [3] = " 1  1 1   ";
+    th    [4] = " 1  1 1   ";
+    th    [5] = " 1  1 1   ";
+    th    [6] = " 11 1 1   ";
+
+    ordinals[0] = first;
+    ordinals[1] = second;
+    ordinals[2] = third;
+    ordinals[3] = th;
 }
