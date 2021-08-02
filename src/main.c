@@ -95,31 +95,30 @@ int main(int argc, char **argv)
     return 1;
 
   offscreen_canvas = led_matrix_create_offscreen_canvas(matrix);
-
   led_canvas_get_size(offscreen_canvas, &width, &height);
-
   fprintf(stderr, "Size: %dx%d. Hardware gpio mapping: %s\n", width, height, options.hardware_mapping);
-
   fprintf(stderr, "Waiting for client...\n");
 
+  // Initially show idle display while waiting for client to connect
   idleDisplay(offscreen_canvas, matrix, width, height);
 
   while (1)
   {
     listen(sockfd, 5);
     clilen = sizeof(cli_addr);
-
+    
+    // Wait for 5 seconds, and if no connections, update idle display
     FD_ZERO(& rd);
     FD_SET(sockfd, & rd);
 
     timeout.tv_sec = 5;
     timeout.tv_usec = 0;
     int rv = select(sockfd + 1, &rd, NULL, NULL, &timeout);
-    if( rv == 0)
+    if( rv == 0) // No connection received within timeout
     {
       idleDisplay(offscreen_canvas, matrix, width, height);
     }
-    else
+    else // connection received
     {
       newsockfd = accept(sockfd, (struct sockaddr *) &cli_addr, &clilen);
       if (newsockfd < 0)
@@ -127,15 +126,19 @@ int main(int argc, char **argv)
 
       fprintf(stderr, "Client Connected.\n");
       
+      // read data from client
       while ((readSize = read(newsockfd, buffer, bufferSize-1)) > 0) 
       {
         offscreen_canvas = led_matrix_swap_on_vsync(matrix, offscreen_canvas);
-
+        
         int i = 0;
         
+        // split integer data by ,
+
         const char *seperator = ",";
         char *rgbItem;
 
+        // parse rgb sequence into matrix of colours
         rgbItem = strtok(buffer, seperator);
         canvas[i].r = atoi(rgbItem);
 
@@ -158,6 +161,7 @@ int main(int argc, char **argv)
           i++;
         }
 
+        // update matrix with transmitted colours
         int j = 0;
         for (x = 0; x < width; ++x)
         {
@@ -168,8 +172,10 @@ int main(int argc, char **argv)
           }
         }
 
+        // clear buffer for next transmission
         bzero(buffer, bufferSize);
       }
+      
       fprintf(stderr, "Client disconnected.\n");
       fprintf(stderr, "Waiting for client...\n");
     }    
