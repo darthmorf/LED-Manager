@@ -7,6 +7,7 @@ import time
 import sys
 import platform
 import run
+import datetime
 
 class Color:
   def __init__(self, r, g, b):
@@ -115,10 +116,13 @@ class Matrix:
     g = 167
     b = 59
     
-    brightness = 1
-    storedBrightness = brightness
+    storedBrightness = 1
 
     while True:
+      brightness = storedBrightness
+
+      hour = datetime.datetime.now().hour
+
       if not self.debug:
         proc = subprocess.Popen("gpio -g mode 2 out; gpio -g mode 19 in; gpio -g write 2 1; gpio -g read 19", shell=True, stdout=subprocess.PIPE)
 
@@ -129,10 +133,18 @@ class Matrix:
         else:
           brightness = storedBrightness
 
+      timeBrightness = 1
+
+      if hour > 21 or hour < 7:
+        timeBrightness = 0.25
+      elif hour > 17 or hour < 9:
+        timeBrightness = 0.5
+
+      brightness = float(timeBrightness * brightness)
+      color = Color(r * brightness, g * brightness, b * brightness)
+
       self.clear()
 
-      color = Color(r * brightness, g * brightness, b * brightness)
-      
       draw.clock(color, self)
       daywidth = draw.clockDay(color, self)
       draw.clockDate(color, self, daywidth)
@@ -141,7 +153,7 @@ class Matrix:
         return
 
       if not self.debug:
-        time.sleep(5)
+        time.sleep(2)
 
       
     
