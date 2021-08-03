@@ -5,8 +5,8 @@ import subprocess
 import draw
 import time
 import sys
-
-DEBUG = False
+import platform
+import run
 
 class Color:
   def __init__(self, r, g, b):
@@ -20,13 +20,17 @@ class Color:
   def toRGB(self):
     return (self.r, self.g, self.b)
 
-class Grid:
-  def __init__(self, debug=False):
-    self.debug = debug
+class Matrix:
+  def __init__(self):
     self.width = 64
     self.height = 32
     defaultColor = Color(0,0,0)
     self.values = []
+
+    if platform.system() == "Windows":
+      self.debug = True
+    else:
+      self.debug = False
 
     for y in range(self.height):
       row = []
@@ -54,7 +58,11 @@ class Grid:
   def update(self):
 
     if self.debug:
-      self.pygame.event.get()
+      for event in self.pygame.event.get():        # gets all the events which have occured till now and keeps tab of them.
+        ## listening for the the X button at the top
+        if event.type == self.pygame.QUIT:
+            return -1
+
       self.surface.fill((0,0,0))
 
       x = 0
@@ -77,6 +85,8 @@ class Grid:
             self.canvas.SetPixel(j, i, self.values[i][j].r, self.values[i][j].g, self.values[i][j].b)
 
       self.canvas = self.matrix.SwapOnVSync(self.canvas)
+    
+    return 0
 
   def setBG(self, color):
     for y in range(self.height):
@@ -97,28 +107,19 @@ class Grid:
     self.values[y][x] = color
 
 
+  def start(self):
 
-def __main__():
-
-  grid = Grid(DEBUG)
-
-  try:
     print("Running LED Manager. Pres Ctrl+C to quit.")
 
-    x = 0
-    y = 0
-
     r = 255
-    g = 159
-    b = 87
+    g = 167
+    b = 59
     
     brightness = 1
     storedBrightness = brightness
 
-    i = 1
     while True:
-
-      if not DEBUG:
+      if not self.debug:
         proc = subprocess.Popen("gpio -g mode 2 out; gpio -g mode 19 in; gpio -g write 2 1; gpio -g read 19", shell=True, stdout=subprocess.PIPE)
 
         switch = int(proc.stdout.read())
@@ -128,19 +129,38 @@ def __main__():
         else:
           brightness = storedBrightness
 
-      grid.clear()
+      self.clear()
 
       color = Color(r * brightness, g * brightness, b * brightness)
       
-      draw.clock(color, grid)
-      daywidth = draw.clockDay(color, grid)
-      draw.clockDate(color, grid, daywidth)
+      draw.clock(color, self)
+      daywidth = draw.clockDay(color, self)
+      draw.clockDate(color, self, daywidth)
 
-      grid.update()
+      if self.update() == -1:
+        return
 
+      if not self.debug:
+        time.sleep(5)
+
+      
+    
+
+   
+
+if __name__ == '__main__':
+  try:
+    webThread = Thread(target=run.start)
+    webThread.daemon = True
+    webThread.start()
+
+    matrix = Matrix()
+    matrix.start()
   except KeyboardInterrupt:
     sys.exit(0)
 
-
-__main__()
- 
+  
+    
+   
+  
+  

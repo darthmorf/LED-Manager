@@ -8,3 +8,5 @@ bin/
 obj/
 
 Pi/debug.png
+
+__pycache__/

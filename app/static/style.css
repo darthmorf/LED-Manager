@@ -1,0 +1,314 @@
+body {
+    background-color: #16171a
+}
+
+.header {
+    width: 68.5%;
+    margin: 0 auto;
+    font-family: "Montserrat-Regular";
+    color: white;
+    font-size: 3vh;
+    padding-left: 1vh;
+    padding-top: 0.5vh;
+    padding-bottom: 0.5vh;
+}
+
+.header a:link{
+    color: white;
+    text-decoration: none;
+}
+
+.header a:visited{
+    color: white;
+    text-decoration: none;
+}
+
+.header a:hover {
+    color: grey;
+    cursor: pointer;
+}
+
+.alignLeft {
+    float:left;
+}
+
+.alignRight {
+    float:right;
+}
+
+.recentArticles a:hover {
+    text-decoration: underline;
+}
+
+.previewText a:hover {
+    text-decoration: underline;
+}
+
+.previewText h6 {
+    font-size: 1.5vh;
+    color: #999;
+}
+
+.articleDate {
+    color: #999;
+}
+
+.history {
+    font-family: 'Courier New', Courier, monospace;
+    font-size: 1.5vh;
+}
+
+.historyTextArea {
+    width: 49%;
+    min-height: 300px;
+    display: inline-block;
+}
+
+.historyLabel {
+    width: 49%;
+    text-align: center;
+    display: inline-block;
+}
+
+.diffLine {
+    margin: 0px;
+}
+
+.editContentBox {
+    min-height: 300px;
+}
+
+.error  {
+    color: red;
+    font-family: "Montserrat-Light";
+    font-size: 1.5vh;
+    margin: 0 auto;    
+}
+
+.success  {
+    color: green;
+    font-family: "Montserrat-Light";
+    font-size: 1.5vh;
+    margin: 0 auto;    
+}
+
+.articleContents {
+    overflow: hidden;
+    position: relative;
+    width: 100%;
+}
+
+.articlePreview {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    display: -webkit-box;
+    -webkit-line-clamp: 2; /* number of lines to show */
+    -webkit-box-orient: vertical;
+}
+
+.footer  {
+    width: 69%;
+    color: white;
+    font-family: "Montserrat-Light";
+    font-size: 1.5vh;
+    margin: 0 auto;    
+    text-align: center;
+}
+
+.footer a:link{
+    color: white;
+    text-decoration: none;
+}
+
+.footer a:visited{
+    color: white;
+    text-decoration: none;
+}
+
+.footer a:hover {
+    color: grey;
+}
+
+.footericon {    
+    font-size: 5vh;
+    letter-spacing: 2vh;
+}
+
+.titleContainter {
+    position: relative;
+    text-align: center;
+    /*background-color: white;*/
+    padding-bottom: 1vh;
+    padding-top: 2vh;
+}
+
+.container {
+    text-align: center;
+    /*background-color: white;*/
+    height: 6vh;
+    border-radius: 5px 5px 0px 0px;
+}
+
+.content {
+    color: #515151;
+    font-family: "Montserrat-Regular";
+    border-radius: 5px;
+    box-shadow: 0px 0px 10px black;
+    background-color: white;
+    width: 69%;
+    margin: 0 auto;    
+    margin-bottom: 2vh;
+    overflow: hidden;
+}
+
+.contentText {    
+    margin-left: 6px;
+    margin-top: 6px;
+    padding-left: 5%;
+    padding-right: 5%;
+    padding-bottom: 2%;
+    font-size: 20px;
+    float: center;
+}
+
+.title {
+    width: 68.5%;
+    margin: 0 auto;
+    font-family: "Montserrat-Regular";
+    color: white;
+    font-size: 4vh;
+    padding-left: 1vh;
+    padding-top: 1vh;
+    padding-bottom: 1vh;
+}
+
+.title h1{
+    font-family: "Montserrat-Bold";
+    font-size: 3vh;
+    color:#1e1f23;
+    margin-top: 2vh;
+    text-align: center;
+    width: 100%;
+}
+
+.title h2 {
+    font-family: "Montserrat-Light";
+    font-size: 2vh;
+    color:rgba(0, 0, 0, 0.37);
+    margin-top: 6px;
+    text-align: center;
+    width: 100%;    
+    letter-spacing: 0.1em;
+}
+
+.divider{
+    content: '';
+    margin: auto;
+    right: 0;
+    bottom: 0;
+    left: 0;
+    width: 10%;
+    height: 1px;
+    background-color: rgba(0, 0, 0, 0.125);
+    margin-bottom: 1vh;
+}
+
+.pageinfo {    
+    width: 70%;
+    margin: 0 auto;    
+    color: #515151;
+    font-family: "Montserrat-Regular";
+    border-radius: 5px;
+    display: flex;
+    flex-wrap: wrap;
+}
+
+.preview {
+    border-radius: 5px;
+    box-shadow: 0px 0px 10px black;
+    background-color: white;
+    margin-bottom: 20px;
+    margin-left: 1vh;
+    margin-right: 1vh;
+    flex-grow: 1;
+    position: relative;
+}
+
+.preview a {
+    text-decoration: none;
+    color: inherit;
+}
+
+.preview a:visited {
+    text-decoration: none;
+    color: inherit;
+}
+
+.previewText {
+    padding-left: 3vw;
+    padding-right: 3vw;
+    padding-bottom: 2vw;
+}
+
+.previewText h1 {
+    font-size: 3vh;
+    color:#1e1f23;
+    padding-bottom: 0vw;
+    margin-bottom: 0px;
+}
+
+.previewTitle {
+    padding-top: 3vh;
+    padding-left: 3vw;
+    padding-right: 3vw;
+    font-family: "Montserrat-Bold";
+    font-size: 3vh;
+    color:#1e1f23;
+    width: 100%;
+}
+
+.previewlink {
+    font-size: 1.4vh;
+    bottom: 1vh;
+    font-family: "Montserrat-SemiBold";
+}
+
+.previewlink a:link{
+    text-decoration: underline;
+    font-family: "Montserrat-Regular" !important;
+}
+
+.previewlink a:visited{
+    text-decoration: none;
+    font-family: "Montserrat-Regular" !important;
+}
+
+.previewlink a:hover {
+    color: grey;
+    font-family: "Montserrat-Regular" !important;
+}
+
+
+.profile:hover {
+    background-image: url("../images/profile_alt.png");
+}
+
+@font-face {
+    font-family: "Montserrat-Regular";
+    src: url("./fonts/Montserrat/Montserrat-Regular.ttf");
+}
+
+@font-face {
+    font-family: "Montserrat-Bold";
+    src: url("./fonts/Montserrat/Montserrat-Bold.ttf");
+}
+
+@font-face {
+    font-family: "Montserrat-SemiBold";
+    src: url("./fonts/Montserrat/Montserrat-SemiBold.ttf");
+}
+
+@font-face {
+    font-family: "Montserrat-Light";
+    src: url("./fonts/Montserrat/Montserrat-Light.ttf");
+}

@@ -343,7 +343,7 @@ def clockDay(color, grid):
     return len(day[0])
 
 def clockDate(color, grid, daylength):
-    x = daylength + 6
+    x = daylength + 4
     y = 23
 
     numbers = [
@@ -482,12 +482,13 @@ def clockDate(color, grid, daylength):
 
     value1 = int(date[0])
 
-    number = numbers[value1]
-    for i in range(len(number)):
-        for j in range(len(number[i])):
-            if number[i][j] == "1":
-                grid.setPixel(x+j, y+i, color)
-    x += len(number[0])
+    if value1 != 0:
+        number = numbers[value1]
+        for i in range(len(number)):
+            for j in range(len(number[i])):
+                if number[i][j] == "1":
+                    grid.setPixel(x+j, y+i, color)
+        x += len(number[0])
 
     value2 = -1
     if len(date) > 1:
