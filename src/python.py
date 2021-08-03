@@ -8,14 +8,15 @@ def __main__():
 
 	pixelcount = 64 * 32
 
-	randcolor(sock, pixelcount)
+	#randcolor(sock, pixelcount)
+	updateClock(sock)
 
 	sock.close()
 
 
 def randcolor(sock, pixelcount):
 	while True:
-		string = ""
+		string = "1,"
 		for i in range(pixelcount):
 			string += str(random.randint(0,255)) + "," + str(random.randint(0,255)) + "," + str(random.randint(0,255)) + ","
 
@@ -25,11 +26,15 @@ def randcolor(sock, pixelcount):
 
 def randbg(sock, pixelcount):
 	while True:
-		string = str(random.randint(0,255)) + "," + str(random.randint(0,255)) + "," + str(random.randint(0,255)) + ","
+		string = "1," + str(random.randint(0,255)) + "," + str(random.randint(0,255)) + "," + str(random.randint(0,255)) + ","
 		string = string * pixelcount
 		string = string[:-1]
 		time.sleep(0.1)
 		sock.send(string)
+
+def updateClock(sock):
+	string = "0,255,167,59"
+	sock.send(string)
 
 
 __main__()		

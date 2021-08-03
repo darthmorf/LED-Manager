@@ -139,6 +139,23 @@ void drawClock(struct colour drawColour, struct LedCanvas *offscreen_canvas)
 
     sprintf(timeBuffer, "%d", tm->tm_hour);
 
+    // adjust brightness depending on time of day
+    float brightness = 1.0f;
+
+    if (tm->tm_hour > 21 || tm->tm_hour < 7)
+    {
+        brightness = 0.25f;
+    }
+    else if (tm->tm_hour > 17 || tm ->tm_hour < 9)
+    {
+        brightness = 0.5f;
+    }
+
+    drawColour.r *= brightness;
+    drawColour.g *= brightness;
+    drawColour.b *= brightness;
+
+    // draw clock
     if (tm->tm_hour < 10)
     {
         clockDigit(0, 0, drawColour, offscreen_canvas);
@@ -182,6 +199,8 @@ void drawClock(struct colour drawColour, struct LedCanvas *offscreen_canvas)
         dayWidth += date(drawColour, offscreen_canvas, dayWidth, timeBuffer[1] - '0');
         trailDigit = timeBuffer[1] - '0';
     } 
+
+    dayWidth+=1;
 
     ordinal(drawColour, offscreen_canvas, dayWidth, trailDigit); 
 }
