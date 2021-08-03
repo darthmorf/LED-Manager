@@ -144,7 +144,7 @@ class Matrix:
 
       timeBrightness = 1
 
-      if hour > 21 or hour < 7:
+      if hour > 20 or hour < 8:
         timeBrightness = 0.25
       elif hour > 17 or hour < 9:
         timeBrightness = 0.5
@@ -162,7 +162,7 @@ class Matrix:
         return
 
       if not self.debug:
-        time.sleep(2)
+        time.sleep(5)
 
 if __name__ == '__main__':
   try:
