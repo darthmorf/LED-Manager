@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 
 from threading import Thread
+import subprocess
 import draw
 import time
 import sys
@@ -26,7 +27,6 @@ class Grid:
     self.height = 32
     defaultColor = Color(0,0,0)
     self.values = []
-    self.oldvalues = []
 
     for y in range(self.height):
       row = []
@@ -46,22 +46,17 @@ class Grid:
       options = RGBMatrixOptions()
       options.rows = self.height
       options.cols = self.width
-      options.brightness = 5
-      options.hardware_mapping = 'adafruit-hat'
+      options.hardware_mapping = 'adafruit-hat-pwm'
 
       self.matrix = RGBMatrix(options = options)
       self.canvas = self.matrix.CreateFrameCanvas()
 
   def update(self):
-    if self.values == self.oldvalues:
-      return
-    
-    self.oldvalues = self.values
 
     if self.debug:
       self.pygame.event.get()
       self.surface.fill((0,0,0))
-      #self.surface.fill((255,0,255))
+
       x = 0
       y = 0
 
@@ -114,44 +109,34 @@ def __main__():
     y = 0
 
     r = 255
-    g = 255
-    b = 255
-
+    g = 159
+    b = 87
+    
     brightness = 1
+    storedBrightness = brightness
 
     i = 1
     while True:
 
-      grid.clear()
-      step = 15
-      if r == 255 and b < 255 and g ==0:
-        b += step
-      elif b == 255 and g == 0 and r <= 255 and r > 0:
-        r -= step
-      elif r == 0 and b == 255 and g < 255:
-        g += step
-      elif r == 0 and g == 255 and b <= 255 and b > 0:
-        b -= step
-      elif b == 0 and r < 255 and g == 255:
-        r += step
-      elif b == 0 and r == 255 and g <= 255 and g > 0:
-        g -= step
+      if not DEBUG:
+        proc = subprocess.Popen("gpio -g mode 2 out; gpio -g mode 19 in; gpio -g write 2 1; gpio -g read 19", shell=True, stdout=subprocess.PIPE)
 
-      #color = Color(r,g,b)
-      color = Color(255*brightness,255*brightness,255*brightness)
+        switch = int(proc.stdout.read())
+
+        if switch == 0:
+          brightness = 0
+        else:
+          brightness = storedBrightness
+
+      grid.clear()
+
+      color = Color(r * brightness, g * brightness, b * brightness)
+      
       draw.clock(color, grid)
       daywidth = draw.clockDay(color, grid)
-  
       draw.clockDate(color, grid, daywidth)
-      #grid.setPixel(x, y, Color(255,255,255))
-      #x += 1
-      #if x == grid.width:
-      #  y += 1
-      #x = x % grid.width
-      #y = y % grid.height
 
       grid.update()
-      time.sleep(1/1)
 
   except KeyboardInterrupt:
     sys.exit(0)
