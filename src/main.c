@@ -12,12 +12,10 @@
 #include <netinet/in.h>
 #include <signal.h>
 #include <time.h>
-#include "draw.c"
 #include <errno.h>
 #include <stdlib.h>
+#include "draw.c"
 
-
-#include <pwd.h>
 
 int setupSocket()
 {
@@ -51,6 +49,37 @@ void idleDisplay(struct LedCanvas *offscreen_canvas, struct RGBLedMatrix *matrix
   led_canvas_clear(offscreen_canvas);
   drawClock(clockColour, offscreen_canvas);
   led_matrix_swap_on_vsync(matrix, offscreen_canvas);
+}
+
+int checkIOSwitch()
+{
+  FILE *fp;
+  char buffer[500];
+
+  // set two pins and read if voltage is passed from one to the other; if so then switch is closed, if not it's open
+  fp = popen("gpio -g mode 2 out; gpio -g mode 19 in; gpio -g write 2 1; gpio -g read 19", "r");
+
+  if (fp == NULL) 
+  {
+    fprintf(stderr, "Could not set GPIO\n" );
+    return -1;
+  }
+
+  while (fgets(buffer, sizeof(buffer), fp) != NULL) 
+  {
+    if (buffer[0] == '1') 
+    {
+      pclose(fp);
+      return 1;
+    }
+    else
+    {
+      pclose(fp);
+      return 0;
+    }
+  }
+
+  return -1;
 }
 
 int main(int argc, char **argv) 
@@ -128,97 +157,104 @@ int main(int argc, char **argv)
 
   while (1)
   {
-    listen(sockfd, 5);
-    clilen = sizeof(cli_addr);
-    
-    // Wait for 5 seconds, and if no connections, update idle display
-    FD_ZERO(& rd);
-    FD_SET(sockfd, & rd);
-
-    timeout.tv_sec = 5;
-    timeout.tv_usec = 0;
-    int rv = select(sockfd + 1, &rd, NULL, NULL, &timeout);
-    if( rv == 0) // No connection received within timeout
+    if (checkIOSwitch() == 1)
     {
-      idleDisplay(offscreen_canvas, matrix, width, height, clockColour);
-    }
-    else // connection received
-    {
-      newsockfd = accept(sockfd, (struct sockaddr *) &cli_addr, &clilen);
-      if (newsockfd < 0)
-        fprintf(stderr, "ERROR on accept\n");
-
-      fprintf(stderr, "Client Connected.\n");
+      listen(sockfd, 5);
+      clilen = sizeof(cli_addr);
       
-      // read data from client
-      while ((readSize = read(newsockfd, buffer, bufferSize-1)) > 0) 
+      // Wait for 5 seconds, and if no connections, update idle display
+      FD_ZERO(& rd);
+      FD_SET(sockfd, & rd);
+
+      timeout.tv_sec = 5;
+      timeout.tv_usec = 0;
+      int rv = select(sockfd + 1, &rd, NULL, NULL, &timeout);
+      if( rv == 0) // No connection received within timeout
       {
-        offscreen_canvas = led_matrix_swap_on_vsync(matrix, offscreen_canvas);
-        
-        int i = 0;
-        
-        // split integer data by ,
-
-        const char *seperator = ",";
-        char *strItem;
-
-        // read first integer to determine what to do with data
-        strItem = strtok(buffer, seperator);
-        int transmissionType = atoi(strItem);
-
-        if (transmissionType == 0) // update clock default colour
-        {
-          strItem = strtok(NULL, seperator);
-          clockColour.r = atoi(strItem);
-
-          strItem = strtok(NULL, seperator);
-          clockColour.g = atoi(strItem);
-
-          strItem = strtok(NULL, seperator);
-          clockColour.b = atoi(strItem);
-
-          // write colour to file in case of reboot
-          FILE *fp;
-          fp = fopen("./data/clockdata.txt", "w+");
-          if (!fp)
-            fprintf(stderr, "Error writing to file: %s\n", strerror(errno));
-          fprintf(fp, "%d,%d,%d", clockColour.r, clockColour.g, clockColour.b);
-          fclose(fp);
-        }
-        else if (transmissionType == 1) // parse rgb sequence into matrix of colours
-        {          
-          while (strItem = strtok(NULL, seperator))
-          {
-            canvas[i].r = atoi(strItem);
-
-            strItem = strtok(NULL, seperator);
-            canvas[i].g = atoi(strItem);
-
-            strItem = strtok(NULL, seperator);
-            canvas[i].b = atoi(strItem);
-            i++;
-          }
-
-          // update matrix with transmitted colours
-          int j = 0;
-          for (x = 0; x < width; ++x)
-          {
-            for (y = 0; y < height; ++y) 
-            {
-              led_canvas_set_pixel(offscreen_canvas, x, y, canvas[j].r, canvas[j].b, canvas[j].g);
-              j++;
-            }
-          }
-        }       
-
-        // clear buffer for next transmission
-        bzero(buffer, bufferSize);
+        idleDisplay(offscreen_canvas, matrix, width, height, clockColour);
       }
+      else // connection received
+      {
+        newsockfd = accept(sockfd, (struct sockaddr *) &cli_addr, &clilen);
+        if (newsockfd < 0)
+          fprintf(stderr, "ERROR on accept\n");
 
-      fprintf(stderr, "Client disconnected.\n");
-      fprintf(stderr, "Waiting for client...\n");
-    }    
+        fprintf(stderr, "Client Connected.\n");
+        
+        // read data from client
+        while ((readSize = read(newsockfd, buffer, bufferSize-1)) > 0) 
+        {
+          offscreen_canvas = led_matrix_swap_on_vsync(matrix, offscreen_canvas);
+          
+          int i = 0;
+          
+          // split integer data by ,
 
+          const char *seperator = ",";
+          char *strItem;
+
+          // read first integer to determine what to do with data
+          strItem = strtok(buffer, seperator);
+          int transmissionType = atoi(strItem);
+
+          if (transmissionType == 0) // update clock default colour
+          {
+            strItem = strtok(NULL, seperator);
+            clockColour.r = atoi(strItem);
+
+            strItem = strtok(NULL, seperator);
+            clockColour.g = atoi(strItem);
+
+            strItem = strtok(NULL, seperator);
+            clockColour.b = atoi(strItem);
+
+            // write colour to file in case of reboot
+            FILE *fp;
+            fp = fopen("./data/clockdata.txt", "w+");
+            if (!fp)
+              fprintf(stderr, "Error writing to file: %s\n", strerror(errno));
+            fprintf(fp, "%d,%d,%d", clockColour.r, clockColour.g, clockColour.b);
+            fclose(fp);
+          }
+          else if (transmissionType == 1) // parse rgb sequence into matrix of colours
+          {          
+            while (strItem = strtok(NULL, seperator))
+            {
+              canvas[i].r = atoi(strItem);
+
+              strItem = strtok(NULL, seperator);
+              canvas[i].g = atoi(strItem);
+
+              strItem = strtok(NULL, seperator);
+              canvas[i].b = atoi(strItem);
+              i++;
+            }
+
+            // update matrix with transmitted colours
+            int j = 0;
+            for (x = 0; x < width; ++x)
+            {
+              for (y = 0; y < height; ++y) 
+              {
+                led_canvas_set_pixel(offscreen_canvas, x, y, canvas[j].r, canvas[j].b, canvas[j].g);
+                j++;
+              }
+            }
+          }       
+
+          // clear buffer for next transmission
+          bzero(buffer, bufferSize);
+        }
+
+        fprintf(stderr, "Client disconnected.\n");
+        fprintf(stderr, "Waiting for client...\n");
+      }    
+    }
+    else
+    {
+      led_canvas_clear(offscreen_canvas);
+      fprintf(stderr, "Clock disabled via hardware switch.\n");
+    }
   }
 
   led_matrix_delete(matrix);
