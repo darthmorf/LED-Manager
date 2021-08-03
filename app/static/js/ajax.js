@@ -1,11 +1,23 @@
 $(document).ready(function() {
-    var csrf_token = $('meta[name=csrf-token]').attr('content');
-    $.ajaxSetup({
-	    beforeSend: function(xhr, settings) {
-	        if (!/^(GET|HEAD|OPTIONS|TRACE)$/i.test(settings.type) && !this.crossDomain) {
-	            xhr.setRequestHeader("X-CSRFToken", csrf_token);
-	        }
-	    }
-	});
-}
-    
+    $("#coloursubmit").on("click", function() 
+    { 
+        var colourpicker = $("#colourform");
+        var rgb = colourpicker[0].value
+
+        $.ajax({
+			url: '/coloursubmit',
+			type: 'POST',
+			data: JSON.stringify({ rgb: rgb}),
+            // We are using JSON, not XML
+			contentType: "application/json; charset=utf-8",
+        	dataType: "json",
+
+			success: function(response) {                
+                console.log("updated colour");
+			},
+			error: function(error){
+				console.log(error);
+			}
+		});
+    });
+});   

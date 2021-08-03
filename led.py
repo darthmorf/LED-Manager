@@ -8,6 +8,7 @@ import sys
 import platform
 import run
 import datetime
+import globals
 
 class Color:
   def __init__(self, r, g, b):
@@ -112,13 +113,21 @@ class Matrix:
 
     print("Running LED Manager. Pres Ctrl+C to quit.")
 
-    r = 255
-    g = 167
-    b = 59
+    with open("./data/clockcolour", "r") as file:
+      rgbStr = file.read()
+      rgbStr = rgbStr.split(",")
+
+      globals.r = rgbStr[0]
+      globals.g = rgbStr[1]
+      globals.b = rgbStr[2]
     
     storedBrightness = 1
 
     while True:
+      r = int(globals.r)
+      g = int(globals.g)
+      b = int(globals.b)
+
       brightness = storedBrightness
 
       hour = datetime.datetime.now().hour
@@ -154,11 +163,6 @@ class Matrix:
 
       if not self.debug:
         time.sleep(2)
-
-      
-    
-
-   
 
 if __name__ == '__main__':
   try:

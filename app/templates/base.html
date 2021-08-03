@@ -3,7 +3,7 @@
   
   <head>
     {% if title %}
-      <title>SamWiki - {{ title }}</title>
+      <title>RPi LED Matrix - {{ title }}</title>
     {% else %}
       <title> No title specified</title>
     {% endif %}
@@ -13,6 +13,14 @@
 
     <script type="text/javascript" src="{{ url_for('static', filename='js/jquery.min.js') }}" ></script>
 	  <script type="text/javascript" src="{{ url_for('static', filename='js/ajax.js') }}" ></script>
+
+    <script type="text/javascript" src="../static/js/jscolor.min.js"></script>
+    <script>
+        // These options apply to all color pickers on the page
+        jscolor.presets.default = {
+            format:'rgb', required:false, previewSize:64, borderRadius:1
+        };
+        </script>
   </head>
 
   <body>

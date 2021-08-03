@@ -1,6 +1,7 @@
 {% extends "base.html" %}
 {% block content %}
-    {% if home == True %}   
+    {% if home == True %} 
+    
     <div class="previewTitle">
         Home
     </div>
@@ -9,6 +10,7 @@
     <br>
     {% endif %}
     <div class="previewText">
-        Bonk
+        <input data-jscolor="{value:'#FFA73B'}" id=colourform>
+        <input type="button" id="coloursubmit" value="Update Color" class="btn btn-dark">
     </div>
 {% endblock %}
