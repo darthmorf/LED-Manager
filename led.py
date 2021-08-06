@@ -9,6 +9,7 @@ import platform
 import run
 import datetime
 import globals
+import os
 
 class Color:
   def __init__(self, r, g, b):
@@ -133,9 +134,14 @@ class Matrix:
       hour = datetime.datetime.now().hour
 
       if not self.debug:
-        proc = subprocess.Popen("gpio -g mode 2 out; gpio -g mode 19 in; gpio -g write 2 1; gpio -g read 19", shell=True, stdout=subprocess.PIPE)
+        try:
+          proc = subprocess.Popen("gpio -g mode 2 out; gpio -g mode 19 in; gpio -g write 2 1; gpio -g read 19", shell=True, stdout=subprocess.PIPE)
+          switch = int(proc.stdout.read())
+        except LookupError:
+          print("Reading switch GPIO failed! Defaulting to On. This probably means that the SD card has slipped out D:")
+          switch = 1
 
-        switch = int(proc.stdout.read())
+        
 
         if switch == 0:
           brightness = 0
@@ -166,12 +172,16 @@ class Matrix:
 
 if __name__ == '__main__':
   try:
+    print("Updating time...")
+    os.system("sudo date -s \"$(wget -qSO- --max-redirect=0 google.com 2>&1 | grep Date: | cut -d' ' -f5-8)Z\"")
+
     webThread = Thread(target=run.start)
     webThread.daemon = True
     webThread.start()
 
     matrix = Matrix()
     matrix.start()
+    
   except KeyboardInterrupt:
     sys.exit(0)
 

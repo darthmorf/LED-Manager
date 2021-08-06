@@ -5,7 +5,11 @@ import globals
 @app.route('/', methods=['GET', 'POST'])
 def index():
 
-    return render_template('index.html', title='Home')
+    hexColour = '#%02x%02x%02x' % (int(globals.r), int(globals.g), int(globals.b))
+
+    print(hexColour)
+
+    return render_template('index.html', title='Home', hexColour=hexColour)
 
 @app.route('/coloursubmit', methods=['POST'])
 def registerSubmit():
