@@ -58,6 +58,30 @@ class Matrix:
       self.matrix = RGBMatrix(options = options)
       self.canvas = self.matrix.CreateFrameCanvas()
 
+  def calculateBrightness(self):
+    try:
+      proc = subprocess.Popen("gpio -g mode 2 out; gpio -g mode 19 in; gpio -g write 2 1; gpio -g read 19", shell=True, stdout=subprocess.PIPE)
+      switch = int(proc.stdout.read())
+    except LookupError:
+      print("Reading switch GPIO failed! Defaulting to On. This probably means that the SD card has slipped out D:")
+      switch = 1
+
+    if switch == 0:
+      return 0
+    else:
+      brightness = 1
+      
+      hour = datetime.datetime.now().hour
+
+      if hour > 20 or hour < 8:
+        brightness = 0.25
+      elif hour > 17 or hour < 9:
+        brightness = 0.5
+
+      return brightness
+
+    
+
   def update(self):
 
     if self.debug:
@@ -81,11 +105,12 @@ class Matrix:
       self.pygame.display.flip()
 
     else:
+      brightness = self.calculateBrightness()
       self.canvas.Clear()
       for i in range(self.height):
         for j in range(self.width):
           if self.values[i][j].toRGB() != (0,0,0):
-            self.canvas.SetPixel(j, i, self.values[i][j].r, self.values[i][j].g, self.values[i][j].b)
+            self.canvas.SetPixel(j, i, self.values[i][j].r * brightness, self.values[i][j].g * brightness, self.values[i][j].b * brightness)
 
       self.canvas = self.matrix.SwapOnVSync(self.canvas)
     
@@ -127,31 +152,12 @@ class Matrix:
       globals.r = rgbStr[0]
       globals.g = rgbStr[1]
       globals.b = rgbStr[2]
-    
-    storedBrightness = 1
-
+  
     while True:
       r = int(globals.r)
       g = int(globals.g)
       b = int(globals.b)
-
-      brightness = storedBrightness
-
-      hour = datetime.datetime.now().hour
-
-      if not self.debug:
-        try:
-          proc = subprocess.Popen("gpio -g mode 2 out; gpio -g mode 19 in; gpio -g write 2 1; gpio -g read 19", shell=True, stdout=subprocess.PIPE)
-          switch = int(proc.stdout.read())
-        except LookupError:
-          print("Reading switch GPIO failed! Defaulting to On. This probably means that the SD card has slipped out D:")
-          switch = 1
-
-        if switch == 0:
-          brightness = 0
-        else:
-          brightness = storedBrightness
-
+        
       if globals.image != []:
         x = 0
         y = 0
@@ -167,15 +173,7 @@ class Matrix:
             y += 1
 
       else:
-        timeBrightness = 1
-
-        if hour > 20 or hour < 8:
-          timeBrightness = 0.25
-        elif hour > 17 or hour < 9:
-          timeBrightness = 0.5
-
-        brightness = float(timeBrightness * brightness)
-        color = Color(r * brightness, g * brightness, b * brightness)
+        color = Color(r, g, b)
 
         self.clear()
 
