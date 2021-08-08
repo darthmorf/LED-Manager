@@ -91,6 +91,12 @@ class Matrix:
     
     return 0
 
+  def swap(self):
+    if self.debug:
+      self.pygame.display.flip()
+    else:
+      self.canvas = self.matrix.SwapOnVSync(self.canvas)
+
   def setBG(self, color):
     for y in range(self.height):
       for x in range(self.width):
@@ -141,28 +147,41 @@ class Matrix:
           print("Reading switch GPIO failed! Defaulting to On. This probably means that the SD card has slipped out D:")
           switch = 1
 
-        
-
         if switch == 0:
           brightness = 0
         else:
           brightness = storedBrightness
 
-      timeBrightness = 1
+      if globals.image != []:
+        x = 0
+        y = 0
+        
+        self.clear()
 
-      if hour > 20 or hour < 8:
-        timeBrightness = 0.25
-      elif hour > 17 or hour < 9:
-        timeBrightness = 0.5
+        for rgb in globals.image:
+          self.setPixel(x, y, Color(rgb[0], rgb[1], rgb[2]))
+          x += 1
 
-      brightness = float(timeBrightness * brightness)
-      color = Color(r * brightness, g * brightness, b * brightness)
+          if x == 64:
+            x = 0
+            y += 1
 
-      self.clear()
+      else:
+        timeBrightness = 1
 
-      draw.clock(color, self)
-      daywidth = draw.clockDay(color, self)
-      draw.clockDate(color, self, daywidth)
+        if hour > 20 or hour < 8:
+          timeBrightness = 0.25
+        elif hour > 17 or hour < 9:
+          timeBrightness = 0.5
+
+        brightness = float(timeBrightness * brightness)
+        color = Color(r * brightness, g * brightness, b * brightness)
+
+        self.clear()
+
+        draw.clock(color, self)
+        daywidth = draw.clockDay(color, self)
+        draw.clockDate(color, self, daywidth)
 
       if self.update() == -1:
         return
@@ -172,8 +191,8 @@ class Matrix:
 
 if __name__ == '__main__':
   try:
-    print("Updating time...")
-    os.system("sudo date -s \"$(wget -qSO- --max-redirect=0 google.com 2>&1 | grep Date: | cut -d' ' -f5-8)Z\"")
+   # print("Updating time...")
+   # os.system("sudo date -s \"$(wget -qSO- --max-redirect=0 google.com 2>&1 | grep Date: | cut -d' ' -f5-8)Z\"")
 
     webThread = Thread(target=run.start)
     webThread.daemon = True

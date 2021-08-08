@@ -43,4 +43,9 @@ $(document).ready(function() {
 			}
 		});
     });
+
+	$("#clearimage").on("click", function() 
+	{
+		window.location.replace("/reset");
+	});
 });   
