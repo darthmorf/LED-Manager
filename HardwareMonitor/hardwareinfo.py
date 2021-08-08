@@ -141,9 +141,114 @@ def displayDisk(image, startx, starty, value, height):
 
     return image
 
+def displayclockspeed(image):
+    startx = 1
+    starty = 7
+
+    x = startx
+    y = starty
+
+    global digits
+    global fgcolour
+
+    value = round(cpuclockspeed / 1000, 2)
+    value = str(value)
+
+    char = digits[int(value[0])]
+
+    for line in char:
+        for c in line:
+            if c == "1":
+                image[y][x] = fgcolour
+            x += 1
+        x = startx
+        y += 1
+
+    startx += 3 + len(char[0])
+    x = startx
+    y = starty
+
+    char = digits[int(value[2])]
+
+    for line in char:
+        for c in line:
+            if c == "1":
+                image[y][x] = fgcolour
+            x += 1
+        x = startx
+        y += 1
+
+    startx += 1 + len(char[0])
+    x = startx
+    y = starty
+
+    if len(value) < 4:
+        value += ("0")
+
+    char = digits[int(value[3])]
+
+    for line in char:
+        for c in line:
+            if c == "1":
+                image[y][x] = fgcolour
+            x += 1
+        x = startx
+        y += 1
+
+    return image
+
+def displaytemperature(image, startx, starty, value, maxTemp):
+    x = startx
+    y = starty
+
+    global digits
+    global fgcolour
+    global warncolour
+
+    colour = fgcolour
+
+    if value > maxTemp:
+        colour = warncolor
+        
+    value = int(round(value, 0))
+    value = str(value)
+
+    char = digits[int(value[0])]
+
+    if len(value) == 1:
+        startx  += 1 + len(char[0])
+        x = startx
+
+    for line in char:
+        for c in line:
+            if c == "1":
+                image[y][x] = colour
+            x += 1
+        x = startx
+        y += 1
+
+
+    if len(value) != 1:
+        startx += 1 + len(char[0])
+        x = startx
+        y = starty
+
+        char = digits[int(value[1])]
+
+        for line in char:
+            for c in line:
+                if c == "1":
+                    image[y][x] = colour
+                x += 1
+            x = startx
+            y += 1
+
+    return image
+
 bgcolour = "(0,0,0)"
 fgcolour = "(255,255,255)"
 mgcolour = "(32,32,32)"
+warncolor = "(255,0,0)"
 
 matrix = [
          "                                                                ",
@@ -153,11 +258,11 @@ matrix = [
          "  11 1   111                                    000 000 000 000 ",
          "              10000000000000  10000000000000    000 000 000 000 ",
          "                                                000 000 000 000 ",
-         " 111   111 111 111 1 1        111 111 111       000 000 000 000 ",
-         "   1   1 1 1 1 1   1 1 111      1 1 1 1 1       000 000 000 000 ",
-         "  11   111 111 1   111   1      1 1 1 111       000 000 000 000 ",
-         "   1   1 1 1 1 1 1 1 1  1      1  1 1           000 000 000 000 ",
-         " 111 1 111 111 111 1 1 111     1  111           000 000 000 000 ",
+         "               111 1 1                111       000 000 000 000 ",
+         "               1   1 1 111            1 1       000 000 000 000 ",
+         "               1   111   1            111       000 000 000 000 ",
+         "               1 1 1 1  1                       000 000 000 000 ",
+         "     1         111 1 1 111                      000 000 000 000 ",
          "                                                000 000 000 000 ",
          " 100000000000000000000000000000000000000000000  000 000 000 000 ",
          " 100000000000000000000000000000000000000000000  000 000 000 000 ",
@@ -167,17 +272,88 @@ matrix = [
          "                                                000 000 000 000 ",
          "                                                000 000 000 000 ",
          "                                                000 000 000 000 ",
-         " 111 111 1 1  111 111 111   111 111 1   1       000 000 000 000 ",
-         " 1   1 1 1 1  1 1 1 1 1 1   1 1 1 1 11 11       000 000 000 000 ",
-         " 1 1 111 1 1  111 111 111   11  111 1 1 1       000 000 000 000 ",
-         " 111 1   111  1 1 1 1       1 1 1 1 1 1 1       111 111 111 111 ",
-         "              111 111                                           ",
+         " 111 111 1 1          111   111 111 1   1       000 000 000 000 ",
+         " 1   1 1 1 1          1 1   1 1 1 1 11 11       000 000 000 000 ",
+         " 1 1 111 1 1          111   11  111 1 1 1       000 000 000 000 ",
+         " 111 1   111                1 1 1 1 1 1 1       111 111 111 111 ",
+         "                                                                ",
          "                                                 11 11  111 111 ",
          " 100000000000000000000000   100000000000000000  1   1 1 1   1   ",
          " 100000000000000000000000   100000000000000000  1   1 1 111 1   ",
          " 100000000000000000000000   100000000000000000  1   1 1 1   1 1 ",
          " 100000000000000000000000   100000000000000000   11 11  111 111 ",
          "                                                                "]
+
+digits = [[
+            "111",
+            "1 1",
+            "1 1",
+            "1 1",
+            "111",
+            ],
+            [
+            " 1 ",
+            "11 ",
+            " 1 ",
+            " 1 ",
+            " 1 ",
+            ],
+            [
+            "111",
+            "  1",
+            " 1 ",
+            "1  ",
+            "111",
+            ],
+            [
+            "111",
+            "  1",
+            " 11",
+            "  1",
+            "111",
+            ],
+            [
+            "1 1",
+            "1 1",
+            "111",
+            "  1",
+            "  1",
+            ],
+            [
+            "111",
+            "1  ",
+            "111",
+            "  1",
+            "111",
+            ],
+            [
+            "111",
+            "1  ",
+            "111",
+            "1 1",
+            "111",
+            ],
+            [
+            "111",
+            "  1",
+            "  1",
+            " 1 ",
+            " 1 ",
+            ],
+            [
+            "111",
+            "1 1",
+            "111",
+            "1 1",
+            "111",
+            ],
+            [
+            "111",
+            "1 1",
+            "111",
+            "  1",
+            "  1",
+            ],]
 
 try:
     while True:
@@ -207,6 +383,10 @@ try:
         image = displayDisk(image, 52, 23, hdduses[3], 22)
         image = displayDisk(image, 56, 23, hdduses[1], 22)
         image = displayDisk(image, 60, 23, hdduses[0], 22)
+
+        image = displayclockspeed(image)
+        image = displaytemperature(image, 30, 7, cputemp, 75)
+        image = displaytemperature(image, 14, 21, gputemp, 500)
 
         strImage = ""
 

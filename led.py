@@ -186,7 +186,7 @@ class Matrix:
       if self.update() == -1:
         return
 
-      if not self.debug:
+      if not self.debug and globals.image == []:
         time.sleep(5)
 
 if __name__ == '__main__':
@@ -200,12 +200,6 @@ if __name__ == '__main__':
 
     matrix = Matrix()
     matrix.start()
-    
+
   except KeyboardInterrupt:
     sys.exit(0)
-
-  
-    
-   
-  
-  
