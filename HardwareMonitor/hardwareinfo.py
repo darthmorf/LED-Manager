@@ -247,7 +247,7 @@ def displaytemperature(image, startx, starty, value, maxTemp):
 
 bgcolour = "(0,0,0)"
 fgcolour = "(255,255,255)"
-mgcolour = "(32,32,32)"
+mgcolour = bgcolour #"(32,32,32)"
 warncolor = "(255,0,0)"
 
 matrix = [
