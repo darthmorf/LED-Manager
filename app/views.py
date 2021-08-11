@@ -43,3 +43,10 @@ def reset():
 
     return redirect(url_for('index'))
 
+@app.route('/togglestrobe', methods=['POST'])
+def togglestrobe():
+
+    globals.strobe = not globals.strobe
+
+    return json.dumps({'status':'Success'})
+

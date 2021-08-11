@@ -143,6 +143,8 @@ class Matrix:
 
   def start(self):
 
+    strobe = False
+
     print("Running LED Manager. Pres Ctrl+C to quit.")
 
     with open("./data/clockcolour", "r") as file:
@@ -172,6 +174,12 @@ class Matrix:
             x = 0
             y += 1
 
+      elif globals.strobe:
+        self.setBG(Color(r, g, b))
+        self.update()
+        self.setBG(Color(0, 0, 0))
+        self.update()
+
       else:
         color = Color(r, g, b)
 
@@ -184,7 +192,7 @@ class Matrix:
       if self.update() == -1:
         return
 
-      if not self.debug and globals.image == []:
+      if not self.debug and globals.image == [] and not globals.strobe:
         time.sleep(5)
 
 if __name__ == '__main__':
