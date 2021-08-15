@@ -73,6 +73,8 @@ class Matrix:
       
       hour = datetime.datetime.now().hour
 
+      if hour > 21 or hour < 7:
+        brightness = 0.05
       if hour > 20 or hour < 8:
         brightness = 0.25
       elif hour > 17 or hour < 9:
@@ -156,6 +158,7 @@ class Matrix:
       globals.b = rgbStr[2]
   
     while True:
+
       r = int(globals.r)
       g = int(globals.g)
       b = int(globals.b)
@@ -189,22 +192,29 @@ class Matrix:
         daywidth = draw.clockDay(color, self)
         draw.clockDate(color, self, daywidth)
 
+      if datetime.datetime.now().minute == 0:
+        updateTime()
+
       if self.update() == -1:
         return
 
       if not self.debug and globals.image == [] and not globals.strobe:
         time.sleep(5)
 
+def updateTime():
+  print("Updating time...")
+  os.system("sudo date -s \"$(wget -qSO- --max-redirect=0 google.com 2>&1 | grep Date: | cut -d' ' -f5-8)Z\"")
+
 if __name__ == '__main__':
   try:
-   # print("Updating time...")
-   # os.system("sudo date -s \"$(wget -qSO- --max-redirect=0 google.com 2>&1 | grep Date: | cut -d' ' -f5-8)Z\"")
+    updateTime()
 
     webThread = Thread(target=run.start)
     webThread.daemon = True
     webThread.start()
 
     matrix = Matrix()
+
     matrix.start()
 
   except KeyboardInterrupt:
