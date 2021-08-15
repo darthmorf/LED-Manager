@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 
 from threading import Thread
+from phue import Bridge
 import subprocess
 import draw
 import time
@@ -10,6 +11,7 @@ import run
 import datetime
 import globals
 import os
+import colorsys
 
 class Color:
   def __init__(self, r, g, b):
@@ -59,6 +61,7 @@ class Matrix:
       self.canvas = self.matrix.CreateFrameCanvas()
 
   def calculateBrightness(self):
+
     try:
       proc = subprocess.Popen("gpio -g mode 2 out; gpio -g mode 19 in; gpio -g write 2 1; gpio -g read 19", shell=True, stdout=subprocess.PIPE)
       switch = int(proc.stdout.read())
@@ -68,7 +71,11 @@ class Matrix:
 
     if switch == 0:
       return 0
-    else:
+
+    elif globals.strobe or (globals.useHue and globals.hueConnected):
+      return 1
+
+    else:      
       brightness = 1
       
       hour = datetime.datetime.now().hour
@@ -142,7 +149,6 @@ class Matrix:
 
     self.values[y][x] = color
 
-
   def start(self):
 
     strobe = False
@@ -162,6 +168,20 @@ class Matrix:
       r = int(globals.r)
       g = int(globals.g)
       b = int(globals.b)
+
+      if globals.hueConnected and globals.useHue:
+
+        try:
+          color = getHueColor()
+
+          r = color[0]
+          g = color[1]
+          b = color[2]
+
+        except:
+          print("Lost connection to Hue.")
+          globals.hueConnected = False
+
         
       if globals.image != []:
         x = 0
@@ -205,9 +225,30 @@ def updateTime():
   print("Updating time...")
   os.system("sudo date -s \"$(wget -qSO- --max-redirect=0 google.com 2>&1 | grep Date: | cut -d' ' -f5-8)Z\"")
 
+def getHueColor():
+  return tuple(round(i * 255) for i in colorsys.hsv_to_rgb(float(globals.hueBulb.hue) / 65535, float(globals.hueBulb.saturation) / 255, float(globals.hueBulb.brightness) / 255))
+
+def initHue():
+  try:
+    print("Connecting to Hue... ")
+    bridge = Bridge('192.168.0.52')
+    bridge.connect()
+    bridge.get_api()
+    lights = bridge.get_light_objects('id')
+
+    globals.hueBulb = lights[1]
+    globals.hueConnected = True
+    print("Connected to Hue.")
+
+  except:
+    globals.hueConnected = False
+    print("Could not connect to Hue.")
+
 if __name__ == '__main__':
   try:
     updateTime()
+
+    initHue()
 
     webThread = Thread(target=run.start)
     webThread.daemon = True

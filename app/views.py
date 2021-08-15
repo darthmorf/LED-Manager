@@ -50,3 +50,11 @@ def togglestrobe():
 
     return json.dumps({'status':'Success'})
 
+@app.route('/togglehue', methods=['POST'])
+def togglehue():
+
+    globals.useHue = not globals.useHue
+
+    return json.dumps({'status':'Success'})
+
+

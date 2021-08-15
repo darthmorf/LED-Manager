@@ -67,4 +67,23 @@ $(document).ready(function() {
 			}
 		});
     });
+
+	$("#togglehue").on("click", function() 
+    { 
+        $.ajax({
+			url: '/togglehue',
+			type: 'POST',
+			data: JSON.stringify({}),
+            // We are using JSON, not XML
+			contentType: "application/json; charset=utf-8",
+        	dataType: "json",
+
+			success: function(response) {                
+                console.log("strobe");
+			},
+			error: function(error){
+				console.log(error);
+			}
+		});
+    });
 });   

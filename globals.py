@@ -3,5 +3,8 @@ g = 255
 b = 255
 
 strobe = False
+hueConnected = False
+hueBulb = None
+useHue = False
 
 image = []
