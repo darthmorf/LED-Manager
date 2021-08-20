@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 
-from threading import Thread
+from threading import Thread, Timer
 from phue import Bridge
 import subprocess
 import draw
@@ -82,7 +82,7 @@ class Matrix:
 
       if hour > 21 or hour < 7:
         brightness = 0.05
-      if hour > 20 or hour < 8:
+      elif hour > 20 or hour < 8:
         brightness = 0.25
       elif hour > 17 or hour < 9:
         brightness = 0.5
@@ -212,9 +212,6 @@ class Matrix:
         daywidth = draw.clockDay(color, self)
         draw.clockDate(color, self, daywidth)
 
-      if datetime.datetime.now().minute == 0:
-        updateTime()
-
       if self.update() == -1:
         return
 
@@ -222,8 +219,10 @@ class Matrix:
         time.sleep(5)
 
 def updateTime():
+  #while True:
   print("Updating time...")
   os.system("sudo date -s \"$(wget -qSO- --max-redirect=0 google.com 2>&1 | grep Date: | cut -d' ' -f5-8)Z\"")
+  #  time.sleep(1)
 
 def getHueColor():
   return tuple(round(i * 255) for i in colorsys.hsv_to_rgb(float(globals.hueBulb.hue) / 65535, float(globals.hueBulb.saturation) / 255, float(globals.hueBulb.brightness) / 255))
@@ -246,7 +245,10 @@ def initHue():
 
 if __name__ == '__main__':
   try:
-    updateTime()
+   
+    #timeSyncTimer = Thread(target=updateTime)
+    #timeSyncTimer.start()
+    #updateTime()
 
     initHue()
 
