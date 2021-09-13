@@ -81,7 +81,7 @@ class Matrix:
       hour = datetime.datetime.now().hour
 
       if hour > 21 or hour < 7:
-        brightness = 0.05
+        brightness = 0.02
       elif hour > 20 or hour < 8:
         brightness = 0.25
       elif hour > 17 or hour < 9:
