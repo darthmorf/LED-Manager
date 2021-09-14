@@ -9,5 +9,9 @@
         <input type="button" id="clearimage" value="Clear Image" class="btn btn-dark">
         <input type="button" id="togglestrobe" value="Toggle Strobe" class="btn btn-dark">
         <input type="button" id="togglehue" value="Toggle Hue" class="btn btn-dark">
+        <br><br>
+        <input type="number" id="brightness" value="{{ brightness }}" min="0" max="1">
+        <input type="checkbox" id="usetimebrightness" {{ checked }}>
+        <input type="button" id="brightnesssubmit" value="Update Brightness" class="btn btn-dark">
     </div>
 {% endblock %}

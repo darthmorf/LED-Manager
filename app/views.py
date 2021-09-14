@@ -9,7 +9,11 @@ def index():
 
     hexColour = '#%02x%02x%02x' % (int(globals.r), int(globals.g), int(globals.b))
 
-    return render_template('index.html', title='Home', hexColour=hexColour)
+    checked = ""
+    if globals.useTimeBrightness:
+        checked = "checked"
+
+    return render_template('index.html', title='Home', hexColour=hexColour, brightness=globals.brightness, checked=checked)
 
 @app.route('/coloursubmit', methods=['POST'])
 def colourSubmit():
@@ -27,6 +31,13 @@ def colourSubmit():
 
     return json.dumps({'status':'Success'})
 
+@app.route('/brightnesssubmit', methods=['POST'])
+def brightnesssubmit():
+    data = json.loads(request.data)
+    globals.brightness = data.get('brightness')
+    globals.useTimeBrightness = data.get('useTimeBrightness')
+
+    return json.dumps({'status':'Success'})
 
 @app.route('/imagesubmit', methods=['GET', 'POST'])
 def imageSubmit():

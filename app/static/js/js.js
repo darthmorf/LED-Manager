@@ -21,6 +21,37 @@ $(document).ready(function() {
 		});
     });
 
+	$("#brightnesssubmit").on("click", function() 
+    { 
+        var brightness = $("#brightness")[0].value;
+		brightness = parseFloat(brightness);
+
+		if (brightness > 1) {
+			brightness = 1;
+		}
+		else if (brightness < 0) {
+			brightness = 0;
+		}
+
+		var useTimeBrightness = $("#usetimebrightness")[0].checked;
+
+        $.ajax({
+			url: '/brightnesssubmit',
+			type: 'POST',
+			data: JSON.stringify({ brightness: brightness, useTimeBrightness: useTimeBrightness}),
+            // We are using JSON, not XML
+			contentType: "application/json; charset=utf-8",
+        	dataType: "json",
+
+			success: function(response) {                
+                console.log("updated brightness");
+			},
+			error: function(error){
+				console.log(error);
+			}
+		});
+    });
+
 	$("#resetcolour").on("click", function() 
     { 
 		var colourpicker = $("#colourform");

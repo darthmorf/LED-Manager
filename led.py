@@ -70,24 +70,21 @@ class Matrix:
       switch = 1
 
     if switch == 0:
-      return 0
+      globals.brightness = 0
 
     elif globals.strobe or (globals.useHue and globals.hueConnected):
-      return 1
+      globals.brightness = 1
 
-    else:      
-      brightness = 1
+    elif globals.useTimeBrightness:   
       
       hour = datetime.datetime.now().hour
 
       if hour > 21 or hour < 7:
-        brightness = 0.02
+        globals.brightness = 0.02
       elif hour > 20 or hour < 8:
-        brightness = 0.25
+        globals.brightness = 0.25
       elif hour > 17 or hour < 9:
-        brightness = 0.5
-
-      return brightness
+        globals.brightness = 0.5
 
     
 
@@ -106,7 +103,9 @@ class Matrix:
 
       for i in range(self.height):
         for j in range(self.width):
-          self.pygame.draw.rect(self.surface, self.values[i][j].toRGB(), self.pygame.Rect(x, y, self.pixelModifier, self.pixelModifier))
+          rgb = self.values[i][j].toRGB()
+          rgb = (rgb[0] * globals.brightness, rgb[1] * globals.brightness, rgb[2] * globals.brightness)
+          self.pygame.draw.rect(self.surface, rgb, self.pygame.Rect(x, y, self.pixelModifier, self.pixelModifier))
           x += self.pixelModifier + 1
         x = 0
         y += self.pixelModifier + 1
@@ -114,12 +113,12 @@ class Matrix:
       self.pygame.display.flip()
 
     else:
-      brightness = self.calculateBrightness()
+      self.calculateBrightness()
       self.canvas.Clear()
       for i in range(self.height):
         for j in range(self.width):
           if self.values[i][j].toRGB() != (0,0,0):
-            self.canvas.SetPixel(j, i, self.values[i][j].r * brightness, self.values[i][j].g * brightness, self.values[i][j].b * brightness)
+            self.canvas.SetPixel(j, i, self.values[i][j].r * globals.brightness, self.values[i][j].g * globals.brightness, self.values[i][j].b * globals.brightness)
 
       self.canvas = self.matrix.SwapOnVSync(self.canvas)
     
