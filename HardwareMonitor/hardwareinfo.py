@@ -2,6 +2,7 @@ import requests
 import wmi
 import time
 import sys
+import datetime
 
 address = "http://192.168.0.30:5000"
 urlbase = address + "/imagesubmit?imageData="
@@ -60,7 +61,9 @@ def getResourceValues():
         elif "/atigpu/0/load/0" in sensor.Identifier:
             gpuuse = sensor.Value
         
-    cpuclockspeed = cpuclockspeed / 6
+    #cpuclockspeed = cpuclockspeed / 6
+    cpuclockspeed = 3600
+    
 
 
 def displaycpus(image):
@@ -245,6 +248,40 @@ def displaytemperature(image, startx, starty, value, maxTemp):
 
     return image
 
+def displaytime(image):
+    currenttime = datetime.datetime.now()
+    hour = str(currenttime.hour)
+    minute = str(currenttime.minute)
+
+    chars = [digits[int(hour[0])], digits[int(hour[1])], digits[int(minute[0])], digits[int(minute[1])]]
+    startx = 46
+
+    image = displaytimechar(startx, 1, image, chars[0])
+    startx += 3 + 1
+    image = displaytimechar(startx, 1, image, chars[1])
+    startx += 3
+    image = displaytimechar(startx, 1, image, colon)
+    startx += 3
+    image = displaytimechar(startx, 1, image, chars[2])
+    startx += 3 + 1
+    image = displaytimechar(startx, 1, image, chars[3])
+
+    return image
+
+def displaytimechar(startx, starty, image, char):
+    x = startx
+    y = starty
+
+    for row in char:
+        for char in row:
+            if char == "1":
+                image[y][x] = fgcolour
+            x += 1
+        x = startx
+        y += 1
+
+    return image
+
 bgcolour = "(0,0,0)"
 fgcolour = "(255,255,255)"
 mgcolour = bgcolour #"(32,32,32)"
@@ -252,12 +289,12 @@ warncolor = "(255,0,0)"
 
 matrix = [
          "                                                                ",
-         "  11 111 1 1  10000000000000  10000000000000    000 000 000 000 ",
-         " 1   1 1 1 1                                    000 000 000 000 ",
-         " 1   111 1 1  10000000000000  10000000000000    000 000 000 000 ",
-         "  11 1   111                                    000 000 000 000 ",
-         "              10000000000000  10000000000000    000 000 000 000 ",
-         "                                                000 000 000 000 ",
+         "  11 111 1 1  10000000000000  10000000000000                    ",
+         " 1   1 1 1 1                                                    ",
+         " 1   111 1 1  10000000000000  10000000000000                    ",
+         "  11 1   111                                                    ",
+         "              10000000000000  10000000000000                    ",
+         "                                                                ",
          "               111 1 1                111       000 000 000 000 ",
          "               1   1 1 111            1 1       000 000 000 000 ",
          "               1   111   1            111       000 000 000 000 ",
@@ -299,7 +336,7 @@ digits = [[
             " 1 ",
             ],
             [
-            "111",
+            "11 ",
             "  1",
             " 1 ",
             "1  ",
@@ -355,6 +392,12 @@ digits = [[
             "  1",
             ],]
 
+colon = ["   ",
+         " 1 ",
+         "   ",
+         " 1 ",
+         "   ",]
+
 try:
     while True:
         getResourceValues()
@@ -378,15 +421,17 @@ try:
         image = display4bar(image, 2, 13, cpuload, 44)
         image = display4bar(image, 2, 27, gpuuse, 24)
         image = display4bar(image, 29, 27, ramuse, 17)
-
-        image = displayDisk(image, 48, 23, hdduses[2], 22)
-        image = displayDisk(image, 52, 23, hdduses[3], 22)
-        image = displayDisk(image, 56, 23, hdduses[1], 22)
-        image = displayDisk(image, 60, 23, hdduses[0], 22)
+        
+        image = displayDisk(image, 48, 23, hdduses[2], 17)
+        image = displayDisk(image, 52, 23, hdduses[3], 17)
+        image = displayDisk(image, 56, 23, hdduses[1], 17)
+        image = displayDisk(image, 60, 23, hdduses[0], 17)
 
         image = displayclockspeed(image)
         image = displaytemperature(image, 30, 7, cputemp, 75)
         image = displaytemperature(image, 14, 21, gputemp, 500)
+
+        image = displaytime(image)
 
         strImage = ""
 
