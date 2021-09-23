@@ -12,6 +12,7 @@ import datetime
 import globals
 import os
 import colorsys
+import random
 
 class Color:
   def __init__(self, r, g, b):
@@ -72,7 +73,7 @@ class Matrix:
     if switch == 0:
       globals.brightness = 0
 
-    elif globals.strobe or (globals.useHue and globals.hueConnected):
+    elif globals.strobe or globals.rainbow or (globals.useHue and globals.hueConnected):
       globals.brightness = 1
 
     elif globals.useTimeBrightness:   
@@ -202,6 +203,14 @@ class Matrix:
         self.setBG(Color(0, 0, 0))
         self.update()
 
+      elif globals.rainbow:
+        h,s,l = random.random(), 0.5 + random.random()/2.0, 0.4 + random.random()/5.0
+        r,g,b = [int(256*i) for i in colorsys.hls_to_rgb(h,l,s)]
+
+        self.setBG(Color(r, g, b))
+        self.update()
+        time.sleep(0.5)
+
       else:
         color = Color(r, g, b)
 
@@ -214,7 +223,7 @@ class Matrix:
       if self.update() == -1:
         return
 
-      if not self.debug and globals.image == [] and not globals.strobe:
+      if not self.debug and globals.image == [] and not globals.strobe and not globals.rainbow:
         time.sleep(5)
 
 def updateTime():

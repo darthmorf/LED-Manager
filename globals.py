@@ -9,5 +9,6 @@ strobe = False
 hueConnected = False
 hueBulb = None
 useHue = False
+rainbow = False
 
 image = []

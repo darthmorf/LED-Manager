@@ -99,6 +99,25 @@ $(document).ready(function() {
 		});
     });
 
+	$("#togglerainbow").on("click", function() 
+    { 
+        $.ajax({
+			url: '/togglerainbow',
+			type: 'POST',
+			data: JSON.stringify({}),
+            // We are using JSON, not XML
+			contentType: "application/json; charset=utf-8",
+        	dataType: "json",
+
+			success: function(response) {                
+                console.log("rainbow");
+			},
+			error: function(error){
+				console.log(error);
+			}
+		});
+    });
+
 	$("#togglehue").on("click", function() 
     { 
         $.ajax({

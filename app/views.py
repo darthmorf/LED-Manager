@@ -61,6 +61,13 @@ def togglestrobe():
 
     return json.dumps({'status':'Success'})
 
+@app.route('/togglerainbow', methods=['POST'])
+def togglerainbow():
+
+    globals.rainbow = not globals.rainbow
+
+    return json.dumps({'status':'Success'})
+
 @app.route('/togglehue', methods=['POST'])
 def togglehue():
 
