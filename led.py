@@ -61,16 +61,17 @@ class Matrix:
       self.matrix = RGBMatrix(options = options)
       self.canvas = self.matrix.CreateFrameCanvas()
 
-  def calculateBrightness(self):
+  def calculateBrightness(self, ignoreGpio):
 
-    try:
-      proc = subprocess.Popen("gpio -g mode 2 out; gpio -g mode 19 in; gpio -g write 2 1; gpio -g read 19", shell=True, stdout=subprocess.PIPE)
-      switch = int(proc.stdout.read())
-    except LookupError:
-      print("Reading switch GPIO failed! Defaulting to On. This probably means that the SD card has slipped out D:")
-      switch = 1
+    if not ignoreGpio:
+      try:
+        proc = subprocess.Popen("gpio -g mode 2 out; gpio -g mode 19 in; gpio -g write 2 1; gpio -g read 19", shell=True, stdout=subprocess.PIPE)
+        switch = int(proc.stdout.read())
+      except LookupError:
+        print("Reading switch GPIO failed! Defaulting to On. This probably means that the SD card has slipped out D:")
+        switch = 1
 
-    if switch == 0:
+    if not ignoreGpio and switch == 0:
       globals.brightness = 0
 
     elif globals.strobe or globals.rainbow or (globals.useHue and globals.hueConnected):
@@ -80,7 +81,7 @@ class Matrix:
       
       hour = datetime.datetime.now().hour
 
-      if hour > 21 or hour < 7:
+      if globals.hueConnected and not globals.hueBulb.on:
         globals.brightness = 0.02
       elif hour > 20 or hour < 8:
         globals.brightness = 0.25
@@ -101,6 +102,7 @@ class Matrix:
 
       x = 0
       y = 0
+      self.calculateBrightness(True)
 
       for i in range(self.height):
         for j in range(self.width):
@@ -114,7 +116,7 @@ class Matrix:
       self.pygame.display.flip()
 
     else:
-      self.calculateBrightness()
+      self.calculateBrightness(False)
       self.canvas.Clear()
       for i in range(self.height):
         for j in range(self.width):
@@ -238,7 +240,7 @@ def getHueColor():
 def initHue():
   try:
     print("Connecting to Hue... ")
-    bridge = Bridge('192.168.0.52')
+    bridge = Bridge('192.168.0.58')
     bridge.connect()
     bridge.get_api()
     lights = bridge.get_light_objects('id')
@@ -247,9 +249,9 @@ def initHue():
     globals.hueConnected = True
     print("Connected to Hue.")
 
-  except:
+  except Exception as e:
     globals.hueConnected = False
-    print("Could not connect to Hue.")
+    print("Could not connect to Hue:\n" + str(e) + "\n")
 
 if __name__ == '__main__':
   try:
