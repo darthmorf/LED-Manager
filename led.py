@@ -81,11 +81,18 @@ class Matrix:
       
       hour = datetime.datetime.now().hour
 
-      if globals.hueConnected and not globals.hueBulb.on:
+      bulbOff = None
+
+      try:
+        bulbOff = globals.hueConnected and not globals.hueBulb.on
+      except:
+        bulbOff = hour > 21 or hour < 8
+
+      if bulbOff:
         globals.brightness = 0.02
-      elif hour > 20 or hour < 8:
+      elif hour > 20 or hour < 9:
         globals.brightness = 0.25
-      elif hour > 17 or hour < 9:
+      elif hour > 17 or hour < 10:
         globals.brightness = 0.5
 
     
