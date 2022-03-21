@@ -77,23 +77,32 @@ class Matrix:
     elif globals.strobe or globals.rainbow or (globals.useHue and globals.hueConnected):
       globals.brightness = 1
 
-    elif globals.useTimeBrightness:   
+
+  def calculateColour(self, rgb):
+    if globals.useTimeBrightness:
+
+      if rgb.toRGB() == (0,0,0):
+        return rgb
       
       hour = datetime.datetime.now().hour
-
-      bulbOff = None
-
+      
       try:
-        bulbOff = globals.hueConnected and not globals.hueBulb.on
-      except:
-        bulbOff = hour > 21 or hour < 8
+        if globals.hueConnected and not globals.hueBulb.on:
+          rgb.r = globals.nightr
+          rgb.g = globals.nightg
+          rgb.b = globals.nightb
 
-      if bulbOff:
-        globals.brightness = 0.02
-      elif hour > 20 or hour < 9:
-        globals.brightness = 0.25
-      elif hour > 17 or hour < 10:
-        globals.brightness = 0.5
+      except:
+        if hour > 21 or hour < 8:
+          rgb.r = globals.nightr
+          rgb.g = globals.nightg
+          rgb.b = globals.nightb
+
+    rgb.r = rgb.r * globals.brightness
+    rgb.b = rgb.b * globals.brightness
+    rgb.g = rgb.g * globals.brightness
+    
+    return rgb
 
     
 
@@ -109,12 +118,13 @@ class Matrix:
 
       x = 0
       y = 0
+
       self.calculateBrightness(True)
 
       for i in range(self.height):
         for j in range(self.width):
-          rgb = self.values[i][j].toRGB()
-          rgb = (rgb[0] * globals.brightness, rgb[1] * globals.brightness, rgb[2] * globals.brightness)
+          rgb = self.values[i][j]
+          rgb = rgb.toRGB()
           self.pygame.draw.rect(self.surface, rgb, self.pygame.Rect(x, y, self.pixelModifier, self.pixelModifier))
           x += self.pixelModifier + 1
         x = 0
@@ -123,12 +133,14 @@ class Matrix:
       self.pygame.display.flip()
 
     else:
-      self.calculateBrightness(False)
       self.canvas.Clear()
+      self.calculateBrightness(True)
+
       for i in range(self.height):
         for j in range(self.width):
           if self.values[i][j].toRGB() != (0,0,0):
-            self.canvas.SetPixel(j, i, self.values[i][j].r * globals.brightness, self.values[i][j].g * globals.brightness, self.values[i][j].b * globals.brightness)
+            rgb = self.values[i][j]
+            self.canvas.SetPixel(j, i, rgb.r, rgb.g, rgb.b)
 
       self.canvas = self.matrix.SwapOnVSync(self.canvas)
     
@@ -222,6 +234,9 @@ class Matrix:
 
       else:
         color = Color(r, g, b)
+
+        self.calculateBrightness(self.debug)
+        color = self.calculateColour(color)
 
         self.clear()
 
