@@ -200,7 +200,7 @@ class Matrix:
       globals.nightb = int(rgbStr[2])
 
     scope = 'user-read-currently-playing user-read-playback-state'
-    spotify = spotipy.Spotify(auth_manager=SpotifyOAuth(client_id="3db3ce732b68473aaa810f74dcaeb433", client_secret="3cdff1f9ac89488285027b5f2330558e", redirect_uri="http://localhost:8888/callback", scope=scope))
+    spotify = spotipy.Spotify(auth_manager=SpotifyOAuth(client_id="", client_secret="", redirect_uri="http://localhost:8888/callback", scope=scope))
       
     drawClock = True
   
