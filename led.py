@@ -298,8 +298,6 @@ class Matrix:
           for x in range(32, 32 + fraction):
             self.setPixel(x, 28, Color(255, 255, 255))         
 
-          self.update()
-
         except Exception as e:
           print(e)
 
