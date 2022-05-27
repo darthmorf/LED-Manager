@@ -13,6 +13,12 @@ import globals
 import os
 import colorsys
 import random
+import spotipy
+from spotipy.oauth2 import SpotifyOAuth
+import spotipy.util as util
+from PIL import Image
+import requests
+from io import BytesIO
 
 class Color:
   def __init__(self, r, g, b):
@@ -125,6 +131,7 @@ class Matrix:
         for j in range(self.width):
           rgb = self.values[i][j]
           rgb = rgb.toRGB()
+          
           self.pygame.draw.rect(self.surface, rgb, self.pygame.Rect(x, y, self.pixelModifier, self.pixelModifier))
           x += self.pixelModifier + 1
         x = 0
@@ -183,12 +190,26 @@ class Matrix:
       globals.r = rgbStr[0]
       globals.g = rgbStr[1]
       globals.b = rgbStr[2]
+
+    with open("./data/nightclockcolour", "r") as file:
+      rgbStr = file.read()
+      rgbStr = rgbStr.split(",")
+
+      globals.nightr = int(rgbStr[0])
+      globals.nightg = int(rgbStr[1])
+      globals.nightb = int(rgbStr[2])
+
+    scope = 'user-read-currently-playing user-read-playback-state'
+    spotify = spotipy.Spotify(auth_manager=SpotifyOAuth(client_id="3db3ce732b68473aaa810f74dcaeb433", client_secret="3cdff1f9ac89488285027b5f2330558e", redirect_uri="http://localhost:8888/callback", scope=scope))
+      
+    drawClock = True
   
     while True:
 
       r = int(globals.r)
       g = int(globals.g)
       b = int(globals.b)
+
 
       if globals.hueConnected and globals.useHue:
 
@@ -203,8 +224,20 @@ class Matrix:
           print("Lost connection to Hue.")
           globals.hueConnected = False
 
+
+      im = Image.open('img/sunset.png').convert('RGB')
+      px = im.load()
+
+      for x in range(64):
+        for y in range(32):
+          col = px[x, y]
+          self.setPixel(x, y, Color(col[0], col[1], col[2]))
+
+      current_track = spotify.current_playback(additional_types=["episode"])
         
       if globals.image != []:
+        drawClock = False
+
         x = 0
         y = 0
         
@@ -219,12 +252,14 @@ class Matrix:
             y += 1
 
       elif globals.strobe:
+        drawClock = False
         self.setBG(Color(r, g, b))
         self.update()
         self.setBG(Color(0, 0, 0))
         self.update()
 
       elif globals.rainbow:
+        drawClock = False
         h,s,l = random.random(), 0.5 + random.random()/2.0, 0.4 + random.random()/5.0
         r,g,b = [int(256*i) for i in colorsys.hls_to_rgb(h,l,s)]
 
@@ -232,23 +267,54 @@ class Matrix:
         self.update()
         time.sleep(0.5)
 
-      else:
-        color = Color(r, g, b)
+      if current_track and current_track["is_playing"]:
 
-        self.calculateBrightness(self.debug)
-        color = self.calculateColour(color)
+        try:
 
-        self.clear()
+          if current_track["currently_playing_type"] == "episode":
+            url = current_track["item"]["images"][0]["url"]
+          
+          else:
+            url = current_track["item"]["album"]["images"][0]["url"]
+
+          response = requests.get(url)
+          im = Image.open(BytesIO(response.content)).convert('RGB')
+          im = im.resize((30, 30))
+          px = im.load()
+
+          for x in range(2, 30):
+            for y in range(2, 30):
+              col = px[x-2, y-2]
+              self.setPixel(x, y, Color(col[0], col[1], col[2]))
+
+          progress = float(current_track["progress_ms"])
+          duration = current_track["item"]["duration_ms"]
+
+          fraction = int((progress / duration) * 30)
+
+          for x in range(32, 62):
+            self.setPixel(x, 28, Color(0, 0, 0))
+
+          for x in range(32, 32 + fraction):
+            self.setPixel(x, 28, Color(255, 255, 255))         
+
+          self.update()
+
+        except Exception as e:
+          print(e)
+
+      if True:
+        color = Color(255, 255, 255)
 
         draw.clock(color, self)
-        daywidth = draw.clockDay(color, self)
-        draw.clockDate(color, self, daywidth)
+        draw.clockDay(color, self)
+        draw.clockDate(color, self)
 
       if self.update() == -1:
         return
 
-      if not self.debug and globals.image == [] and not globals.strobe and not globals.rainbow:
-        time.sleep(5)
+      if globals.image == [] and not globals.strobe and not globals.rainbow:
+       time.sleep(1)
 
 def updateTime():
   #while True:
