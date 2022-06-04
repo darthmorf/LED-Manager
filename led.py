@@ -199,8 +199,12 @@ class Matrix:
       globals.nightg = int(rgbStr[1])
       globals.nightb = int(rgbStr[2])
 
+    with open("./data/spotifykeys", "r") as file:
+      keys = file.read()
+      keys = keys.split(",")
+
     scope = 'user-read-currently-playing user-read-playback-state'
-    spotify = spotipy.Spotify(auth_manager=SpotifyOAuth(client_id="", client_secret="", redirect_uri="http://localhost:8888/callback", scope=scope))
+    spotify = spotipy.Spotify(auth_manager=SpotifyOAuth(client_id=keys[0], client_secret=keys[1], redirect_uri="http://localhost:8888/callback", scope=scope))
       
     drawClock = True
   

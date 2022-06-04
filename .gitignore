@@ -10,3 +10,5 @@ obj/
 Pi/debug.png
 
 __pycache__/
+
+data/spotifykeys
