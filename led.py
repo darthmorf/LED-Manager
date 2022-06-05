@@ -253,29 +253,6 @@ class Matrix:
           print("Lost connection to Hue.")
           globals.hueConnected = False
 
-
-      month = int(datetime.datetime.now().strftime("%m"))
-      brightness = self.calculateBgBrightness()
-
-      if month > 2 and month < 6:
-        px = pxSpring
-      elif month > 5 and month < 9:
-        px = pxSummer
-      elif month > 8 and month < 12:
-        px = pxAutumn
-      else:
-        px = pxWinter
-
-      for x in range(64):
-        for y in range(32):
-          col = px[x, y]
-          self.setPixel(x, y, Color(col[0] * brightness, col[1] * brightness, col[2] * brightness))
-
-      try:
-        current_track = spotify.current_playback(additional_types=["episode"])
-      except:
-        print("Spotify Error")
-
         
       if globals.image != []:
         drawClock = False
@@ -309,41 +286,63 @@ class Matrix:
         self.update()
         time.sleep(0.5)
 
-      if current_track and current_track["is_playing"]:
+      else:
+        month = int(datetime.datetime.now().strftime("%m"))
+        brightness = self.calculateBgBrightness()
+
+        if month > 2 and month < 6:
+          px = pxSpring
+        elif month > 5 and month < 9:
+          px = pxSummer
+        elif month > 8 and month < 12:
+          px = pxAutumn
+        else:
+          px = pxWinter
+
+        for x in range(64):
+          for y in range(32):
+            col = px[x, y]
+            self.setPixel(x, y, Color(col[0] * brightness, col[1] * brightness, col[2] * brightness))
 
         try:
+          current_track = spotify.current_playback(additional_types=["episode"])
+        except:
+          print("Spotify Error")
 
-          if current_track["currently_playing_type"] == "episode":
-            url = current_track["item"]["images"][0]["url"]
-          
-          else:
-            url = current_track["item"]["album"]["images"][0]["url"]
+        if current_track and current_track["is_playing"]:
 
-          response = requests.get(url)
-          im = Image.open(BytesIO(response.content)).convert('RGB')
-          im = im.resize((30, 30))
-          px = im.load()
+          try:
 
-          for x in range(2, 30):
-            for y in range(2, 30):
-              col = px[x-2, y-2]
-              self.setPixel(x, y, Color(col[0] * brightness, col[1] * brightness, col[2] * brightness))
+            if current_track["currently_playing_type"] == "episode":
+              url = current_track["item"]["images"][0]["url"]
+            
+            else:
+              url = current_track["item"]["album"]["images"][0]["url"]
 
-          progress = float(current_track["progress_ms"])
-          duration = current_track["item"]["duration_ms"]
+            response = requests.get(url)
+            im = Image.open(BytesIO(response.content)).convert('RGB')
+            im = im.resize((30, 30))
+            px = im.load()
 
-          fraction = int((progress / duration) * 30)
+            for x in range(2, 30):
+              for y in range(2, 30):
+                col = px[x-2, y-2]
+                self.setPixel(x, y, Color(col[0] * brightness, col[1] * brightness, col[2] * brightness))
 
-          for x in range(32, 62):
-            self.setPixel(x, 28, Color(0, 0, 0))
+            progress = float(current_track["progress_ms"])
+            duration = current_track["item"]["duration_ms"]
 
-          for x in range(32, 32 + fraction):
-            self.setPixel(x, 28, Color(255 * brightness, 255 * brightness, 255 * brightness))         
+            fraction = int((progress / duration) * 30)
 
-        except Exception as e:
-          print(e)
+            for x in range(32, 62):
+              self.setPixel(x, 28, Color(0, 0, 0))
 
-      if True:
+            for x in range(32, 32 + fraction):
+              self.setPixel(x, 28, Color(255 * brightness, 255 * brightness, 255 * brightness))         
+
+          except Exception as e:
+            print(e)
+        
         color = self.calculateClockColour(Color(r, g, b))
 
         draw.clock(color, self)

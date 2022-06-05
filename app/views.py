@@ -23,9 +23,9 @@ def daySubmit():
     rgb = rgb[4:len(rgb)-1]
     rgb = rgb.split(",")
     
-    globals.r = int(rgb[0])
-    globals.g = int(rgb[1])
-    globals.b = int(rgb[2])
+    globals.r = rgb[0]
+    globals.g = rgb[1]
+    globals.b = rgb[2]
     
     globals.brightness = data.get('brightness')
 
@@ -40,12 +40,10 @@ def nightSubmit():
     rgb = data.get('rgb')
     rgb = rgb[4:len(rgb)-1]
     rgb = rgb.split(",")
-
-    print(rgb)
     
-    globals.nightr = int(rgb[0])
-    globals.nightg = int(rgb[1])
-    globals.nightb = int(rgb[2])
+    globals.nightr = rgb[0]
+    globals.nightg = rgb[1]
+    globals.nightb = rgb[2]
     
     globals.nightBrightness = data.get('brightness')
     globals.useTimeBrightness = data.get('useNightBrightness')
