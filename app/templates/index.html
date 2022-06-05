@@ -3,16 +3,39 @@
     <br>
     <br>
     <div class="previewText">
-        <input data-jscolor="{value:'{{ hexColour }}'}" id=colourform>
-        <input type="button" id="coloursubmit" value="Update Colour" class="btn btn-dark">
-        <input type="button" id="resetcolour" value="Reset to Default Colour" class="btn btn-dark">
-        <input type="button" id="clearimage" value="Clear Image" class="btn btn-dark">
-        <input type="button" id="togglestrobe" value="Toggle Strobe" class="btn btn-dark">
-        <input type="button" id="togglerainbow" value="Toggle Rainbow" class="btn btn-dark">
-        <input type="button" id="togglehue" value="Toggle Hue" class="btn btn-dark">
-        <br><br>
-        <input type="number" id="brightness" value="{{ brightness }}" min="0" max="1">
-        <input type="checkbox" id="usetimebrightness" {{ checked }}>
-        <input type="button" id="brightnesssubmit" value="Update Brightness" class="btn btn-dark">
+        <h1>Day Settings</h1>       
+        <div class="paddingElement">
+            <input data-jscolor="{value:'{{ dayHexColour }}'}" id=dayColourform>
+        </div>
+        <div class="paddingElement">
+            <input type="number" id="dayBrightness" value="{{ brightness }}" min="0" max="1">
+        </div>
+        <div class="paddingElement">
+            <input type="button" id="daySubmit" value="Apply" class="btn btn-dark">
+        </div>
+
+        <br>
+        <h1>Night Settings</h1>   
+        <div class="paddingElement">
+            <input data-jscolor="{value:'{{ nightHexColour }}'}" id=nightColourform>
+        </div>
+        <div class="paddingElement">
+            <input type="number" id="nightBrightness" value="{{ nightBrightness }}" min="0" max="1">
+        </div>   
+        <div class="paddingElement">
+            Use Night Brightness? <input type="checkbox" id="useNightBrightness" {{ useTimeBrightness }}>
+        </div>
+        <div class="paddingElement">
+            <input type="button" id="nightSubmit" value="Apply" class="btn btn-dark">
+        </div>
+
+        <br>
+        <h1>Other Settings</h1>
+        <div class="paddingElement">
+            <input type="button" id="clearImage" value="Clear Image" class="btn btn-dark">
+            <input type="button" id="toggleStrobe" value="Toggle Strobe" class="btn btn-dark">
+            <input type="button" id="toggleRainbow" value="Toggle Rainbow" class="btn btn-dark">
+            <input type="button" id="toggleHue" value="Toggle Hue" class="btn btn-dark">
+        </div>
     </div>
 {% endblock %}

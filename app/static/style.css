@@ -213,6 +213,10 @@ body {
     margin-bottom: 1vh;
 }
 
+.paddingElement {
+    padding-top: 10px;
+}
+
 .pageinfo {    
     width: 70%;
     margin: 0 auto;    

@@ -100,20 +100,13 @@ class Matrix:
           rgb.r = globals.nightr
           rgb.g = globals.nightg
           rgb.b = globals.nightb
-
-    rgb.r = rgb.r * globals.brightness
-    rgb.b = rgb.b * globals.brightness
-    rgb.g = rgb.g * globals.brightness
     
     return rgb
 
   def calculateBgBrightness(self):
-    brightness = 1.0
+    brightness = globals.brightness
 
-    if self.debug:
-      nightBrightness = 0.5
-    else:
-      nightBrightness = 0.02
+    nightBrightness = globals.nightBrightness
 
     if globals.useTimeBrightness:
       

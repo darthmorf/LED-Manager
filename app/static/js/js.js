@@ -1,29 +1,10 @@
 $(document).ready(function() {
-    $("#coloursubmit").on("click", function() 
+    $("#daySubmit").on("click", function() 
     { 
-        var colourpicker = $("#colourform");
+        var colourpicker = $("#dayColourform");
         var rgb = colourpicker[0].value;
 
-        $.ajax({
-			url: '/coloursubmit',
-			type: 'POST',
-			data: JSON.stringify({ rgb: rgb}),
-            // We are using JSON, not XML
-			contentType: "application/json; charset=utf-8",
-        	dataType: "json",
-
-			success: function(response) {                
-                console.log("updated colour");
-			},
-			error: function(error){
-				console.log(error);
-			}
-		});
-    });
-
-	$("#brightnesssubmit").on("click", function() 
-    { 
-        var brightness = $("#brightness")[0].value;
+		var brightness = $("#dayBrightness")[0].value;
 		brightness = parseFloat(brightness);
 
 		if (brightness > 1) {
@@ -33,35 +14,13 @@ $(document).ready(function() {
 			brightness = 0;
 		}
 
-		var useTimeBrightness = $("#usetimebrightness")[0].checked;
-
         $.ajax({
-			url: '/brightnesssubmit',
+			url: '/daysubmit',
 			type: 'POST',
-			data: JSON.stringify({ brightness: brightness, useTimeBrightness: useTimeBrightness}),
-            // We are using JSON, not XML
-			contentType: "application/json; charset=utf-8",
-        	dataType: "json",
-
-			success: function(response) {                
-                console.log("updated brightness");
-			},
-			error: function(error){
-				console.log(error);
-			}
-		});
-    });
-
-	$("#resetcolour").on("click", function() 
-    { 
-		var colourpicker = $("#colourform");
-        var rgb = "rgb(255,167,59)";
-		colourpicker[0].jscolor.fromRGBA(255,167,59);
-
-        $.ajax({
-			url: '/coloursubmit',
-			type: 'POST',
-			data: JSON.stringify({ rgb: rgb}),
+			data: JSON.stringify({ 
+				rgb: rgb,
+				brightness: brightness
+			}),
             // We are using JSON, not XML
 			contentType: "application/json; charset=utf-8",
         	dataType: "json",
@@ -75,12 +34,50 @@ $(document).ready(function() {
 		});
     });
 
-	$("#clearimage").on("click", function() 
+	$("#nightSubmit").on("click", function() 
+    { 
+        var colourpicker = $("#nightColourform");
+        var rgb = colourpicker[0].value;
+
+		var brightness = $("#nightBrightness")[0].value;
+		brightness = parseFloat(brightness);
+
+		if (brightness > 1) {
+			brightness = 1;
+		}
+		else if (brightness < 0) {
+			brightness = 0;
+		}
+
+		var useNightBrightness = $("#useNightBrightness")[0].checked;
+
+        $.ajax({
+			url: '/nightsubmit',
+			type: 'POST',
+			data: JSON.stringify({ 
+				rgb: rgb,
+				brightness: brightness,
+				useNightBrightness: useNightBrightness
+			}),
+            // We are using JSON, not XML
+			contentType: "application/json; charset=utf-8",
+        	dataType: "json",
+
+			success: function(response) {                
+                console.log("updated colour");
+			},
+			error: function(error){
+				console.log(error);
+			}
+		});
+    });
+
+	$("#clearImage").on("click", function() 
 	{
 		window.location.replace("/reset");
 	});
 
-	$("#togglestrobe").on("click", function() 
+	$("#toggleStrobe").on("click", function() 
     { 
         $.ajax({
 			url: '/togglestrobe',
@@ -99,7 +96,7 @@ $(document).ready(function() {
 		});
     });
 
-	$("#togglerainbow").on("click", function() 
+	$("#toggleRainbow").on("click", function() 
     { 
         $.ajax({
 			url: '/togglerainbow',
@@ -118,7 +115,7 @@ $(document).ready(function() {
 		});
     });
 
-	$("#togglehue").on("click", function() 
+	$("#toggleHue").on("click", function() 
     { 
         $.ajax({
 			url: '/togglehue',

@@ -7,6 +7,7 @@ nightg = 255
 nightb = 255
 
 brightness = 1
+nightBrightness = 0.02
 
 useTimeBrightness = True
 strobe = False

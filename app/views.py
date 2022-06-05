@@ -7,37 +7,54 @@ import random
 @app.route('/', methods=['GET', 'POST'])
 def index():
 
-    hexColour = '#%02x%02x%02x' % (int(globals.r), int(globals.g), int(globals.b))
+    dayHexColour = '#%02x%02x%02x' % (int(globals.r), int(globals.g), int(globals.b))
+    nightHexColour = '#%02x%02x%02x' % (int(globals.nightr), int(globals.nightg), int(globals.nightb))
 
     checked = ""
     if globals.useTimeBrightness:
-        checked = "checked"
+        useTimeBrightness = "checked"
 
-    return render_template('index.html', title='Home', hexColour=hexColour, brightness=globals.brightness, checked=checked)
+    return render_template('index.html', title='Home', dayHexColour=dayHexColour, nightHexColour=nightHexColour, brightness=globals.brightness, nightBrightness=globals.nightBrightness, useTimeBrightness=useTimeBrightness)
 
-@app.route('/coloursubmit', methods=['POST'])
-def colourSubmit():
+@app.route('/daysubmit', methods=['POST'])
+def daySubmit():
     data = json.loads(request.data)
     rgb = data.get('rgb')
     rgb = rgb[4:len(rgb)-1]
     rgb = rgb.split(",")
     
-    globals.r = rgb[0]
-    globals.g = rgb[1]
-    globals.b = rgb[2]
+    globals.r = int(rgb[0])
+    globals.g = int(rgb[1])
+    globals.b = int(rgb[2])
+    
+    globals.brightness = data.get('brightness')
 
     with open("./data/clockcolour", "w") as file:
         file.write(globals.r + "," + globals.g + "," + globals.b)
 
     return json.dumps({'status':'Success'})
 
-@app.route('/brightnesssubmit', methods=['POST'])
-def brightnesssubmit():
+@app.route('/nightsubmit', methods=['POST'])
+def nightSubmit():
     data = json.loads(request.data)
-    globals.brightness = data.get('brightness')
-    globals.useTimeBrightness = data.get('useTimeBrightness')
+    rgb = data.get('rgb')
+    rgb = rgb[4:len(rgb)-1]
+    rgb = rgb.split(",")
+
+    print(rgb)
+    
+    globals.nightr = int(rgb[0])
+    globals.nightg = int(rgb[1])
+    globals.nightb = int(rgb[2])
+    
+    globals.nightBrightness = data.get('brightness')
+    globals.useTimeBrightness = data.get('useNightBrightness')
+
+    with open("./data/nightclockcolour", "w") as file:
+        file.write(globals.r + "," + globals.g + "," + globals.b)
 
     return json.dumps({'status':'Success'})
+
 
 @app.route('/imagesubmit', methods=['GET', 'POST'])
 def imageSubmit():
