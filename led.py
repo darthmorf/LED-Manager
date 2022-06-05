@@ -84,11 +84,8 @@ class Matrix:
       globals.brightness = 1
 
 
-  def calculateColour(self, rgb):
+  def calculateClockColour(self, rgb):
     if globals.useTimeBrightness:
-
-      if rgb.toRGB() == (0,0,0):
-        return rgb
       
       hour = datetime.datetime.now().hour
       
@@ -109,6 +106,28 @@ class Matrix:
     rgb.g = rgb.g * globals.brightness
     
     return rgb
+
+  def calculateBgBrightness(self):
+    brightness = 1.0
+
+    if self.debug:
+      nightBrightness = 0.5
+    else:
+      nightBrightness = 0.02
+
+    if globals.useTimeBrightness:
+      
+      hour = datetime.datetime.now().hour
+      
+      try:
+        if globals.hueConnected and not globals.hueBulb.on:
+          brightness = nightBrightness
+
+      except:
+        if hour > 21 or hour < 8:
+          brightness = nightBrightness
+    
+    return brightness
 
     
 
@@ -243,6 +262,7 @@ class Matrix:
 
 
       month = int(datetime.datetime.now().strftime("%m"))
+      brightness = self.calculateBgBrightness()
 
       if month > 2 and month < 6:
         px = pxSpring
@@ -256,7 +276,7 @@ class Matrix:
       for x in range(64):
         for y in range(32):
           col = px[x, y]
-          self.setPixel(x, y, Color(col[0] * globals.brightness, col[1] * globals.brightness, col[2] * globals.brightness))
+          self.setPixel(x, y, Color(col[0] * brightness, col[1] * brightness, col[2] * brightness))
 
       try:
         current_track = spotify.current_playback(additional_types=["episode"])
@@ -314,7 +334,7 @@ class Matrix:
           for x in range(2, 30):
             for y in range(2, 30):
               col = px[x-2, y-2]
-              self.setPixel(x, y, Color(col[0], col[1], col[2]))
+              self.setPixel(x, y, Color(col[0] * brightness, col[1] * brightness, col[2] * brightness))
 
           progress = float(current_track["progress_ms"])
           duration = current_track["item"]["duration_ms"]
@@ -325,13 +345,13 @@ class Matrix:
             self.setPixel(x, 28, Color(0, 0, 0))
 
           for x in range(32, 32 + fraction):
-            self.setPixel(x, 28, Color(255, 255, 255))         
+            self.setPixel(x, 28, Color(255 * brightness, 255 * brightness, 255 * brightness))         
 
         except Exception as e:
           print(e)
 
       if True:
-        color = Color(r, g, b)
+        color = self.calculateClockColour(Color(r, g, b))
 
         draw.clock(color, self)
         draw.clockDay(color, self)
