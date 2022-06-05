@@ -207,6 +207,19 @@ class Matrix:
     spotify = spotipy.Spotify(auth_manager=SpotifyOAuth(client_id=keys[0], client_secret=keys[1], redirect_uri="http://localhost:8888/callback", scope=scope))
       
     drawClock = True
+
+    current_track = None
+
+    im = Image.open('img/spring.png').convert('RGB')
+    pxSpring = im.load()
+    im = Image.open('img/summer.png').convert('RGB')
+    pxSummer = im.load()
+    im = Image.open('img/autumn.png').convert('RGB')
+    pxAutumn = im.load()
+    im = Image.open('img/winter.png').convert('RGB')
+    pxWinter = im.load()
+
+    px = pxSpring
   
     while True:
 
@@ -229,15 +242,27 @@ class Matrix:
           globals.hueConnected = False
 
 
-      im = Image.open('img/sunset.png').convert('RGB')
-      px = im.load()
+      month = int(datetime.datetime.now().strftime("%m"))
+
+      if month > 2 and month < 6:
+        px = pxSpring
+      elif month > 5 and month < 9:
+        px = pxSummer
+      elif month > 8 and month < 12:
+        px = pxAutumn
+      else:
+        px = pxWinter
 
       for x in range(64):
         for y in range(32):
           col = px[x, y]
-          self.setPixel(x, y, Color(col[0], col[1], col[2]))
+          self.setPixel(x, y, Color(col[0] * globals.brightness, col[1] * globals.brightness, col[2] * globals.brightness))
 
-      current_track = spotify.current_playback(additional_types=["episode"])
+      try:
+        current_track = spotify.current_playback(additional_types=["episode"])
+      except:
+        print("Spotify Error")
+
         
       if globals.image != []:
         drawClock = False
@@ -306,7 +331,7 @@ class Matrix:
           print(e)
 
       if True:
-        color = Color(255, 255, 255)
+        color = Color(r, g, b)
 
         draw.clock(color, self)
         draw.clockDay(color, self)
