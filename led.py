@@ -370,9 +370,17 @@ def initHue():
     bridge = Bridge('192.168.0.58')
     bridge.connect()
     bridge.get_api()
-    lights = bridge.get_light_objects('id')
+    lights = bridge.get_light_objects('list')
 
-    globals.hueBulb = lights[1]
+    globals.hueBulb = None
+
+    for l in lights:
+      if l.name == "Sams Room Light Left":
+        globals.hueBulb = l
+
+    if globals.hueBulb == None:
+      raise Exception("Could not find left light bulb")
+
     globals.hueConnected = True
     print("Connected to Hue.")
 
