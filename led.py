@@ -9,6 +9,7 @@ import sys
 import platform
 import run
 import datetime
+from datetime import  timedelta
 import globals
 import os
 import colorsys
@@ -19,6 +20,9 @@ import spotipy.util as util
 from PIL import Image
 import requests
 from io import BytesIO
+from astral import LocationInfo
+from astral.sun import sun
+import pytz
 
 class Color:
   def __init__(self, r, g, b):
@@ -86,6 +90,9 @@ class Matrix:
 
   def calculateClockColour(self, rgb):
     if globals.useTimeBrightness:
+
+      lightsOn = globals.hueConnected and globals.hueBulb.on
+      dayTime = self.getDayTime()
       
       hour = datetime.datetime.now().hour
       
@@ -103,17 +110,32 @@ class Matrix:
     
     return rgb
 
+  def getDayTime(self):
+    city = LocationInfo("Leeds", "England")
+
+    s = sun(city.observer, date=datetime.datetime.now())
+
+    utc=pytz.UTC
+
+    timeNow =  utc.localize(datetime.datetime.now() #+ timedelta(hours=2))
+    dayTime = s['sunrise'] < timeNow and timeNow < s['sunset']
+
+    return dayTime
+
   def calculateBgBrightness(self):
     brightness = globals.brightness
 
     nightBrightness = globals.nightBrightness
+
+    lightsOn = globals.hueConnected and globals.hueBulb.on
+    dayTime = self.getDayTime()
 
     if globals.useTimeBrightness:
       
       hour = datetime.datetime.now().hour
       
       try:
-        if globals.hueConnected and not globals.hueBulb.on:
+        if not dayTime and not lightsOn:
           brightness = nightBrightness
 
       except:
