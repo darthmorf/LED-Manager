@@ -46,7 +46,7 @@ class Color:
     return "(" + str(self.r) + ", " + str(self.g) + ", " + str(self.b) + ")"
 
   def toRGB(self):
-    return (self.r, self.g, self.b)
+    return (int(self.r), int(self.g), int(self.b))
 
 class Matrix:
   def __init__(self):
