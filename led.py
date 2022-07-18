@@ -95,7 +95,7 @@ class Matrix:
       globals.brightness = 1
 
   def getDayTime(self):
-    timeOffset = 1
+    timeOffset = 2
     utc=pytz.UTC
 
     if self.debug:
