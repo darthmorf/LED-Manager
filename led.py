@@ -20,9 +20,21 @@ import spotipy.util as util
 from PIL import Image
 import requests
 from io import BytesIO
-from astral import LocationInfo
-from astral.sun import sun
 import pytz
+
+if platform.system() == "Windows":
+  debug = True
+else:
+  debug = False
+
+
+if debug:
+  import pygame
+  from astral import LocationInfo
+  from astral.sun import sun
+else:
+  from rgbmatrix import RGBMatrix, RGBMatrixOptions
+  from astral import Astral
 
 class Color:
   def __init__(self, r, g, b):
@@ -43,10 +55,7 @@ class Matrix:
     defaultColor = Color(0,0,0)
     self.values = []
 
-    if platform.system() == "Windows":
-      self.debug = True
-    else:
-      self.debug = False
+    self.debug = debug
 
     for y in range(self.height):
       row = []
@@ -55,14 +64,12 @@ class Matrix:
       self.values.append(row)
 
     if self.debug:
-      import pygame
       self.pygame = pygame
       self.pygame.init()
       self.pixelModifier = 8
       self.surface = pygame.display.set_mode((self.width*self.pixelModifier + self.width, self.height*self.pixelModifier + self.height))
       self.pygame.display.set_caption("LED Matrix Simulator")
     else:
-      from rgbmatrix import RGBMatrix, RGBMatrixOptions
       options = RGBMatrixOptions()
       options.rows = self.height
       options.cols = self.width
@@ -87,6 +94,34 @@ class Matrix:
     elif globals.strobe or globals.rainbow or (globals.useHue and globals.hueConnected):
       globals.brightness = 1
 
+  def getDayTime(self):
+    timeOffset = 1
+    utc=pytz.UTC
+
+    if self.debug:
+      city = LocationInfo("Leeds", "England")
+
+      s = sun(city.observer, date=datetime.datetime.now())
+
+      timeNow =  utc.localize(datetime.datetime.now() + timedelta(hours=timeOffset))
+      dayTime = s['sunrise'] < timeNow and timeNow < s['sunset']
+
+      return dayTime
+
+    else:
+      city_name = 'Leeds'
+
+      a = Astral()
+      a.solar_depression = 'civil'
+
+      city = a[city_name]
+      s = city.sun(date=datetime.datetime.now(), local=True)       
+
+      timeNow =  utc.localize(datetime.datetime.now() + timedelta(hours=timeOffset))
+      dayTime = s['sunrise'] < timeNow and timeNow < s['sunset']
+
+      return dayTime
+
 
   def calculateClockColour(self, rgb):
     if globals.useTimeBrightness:
@@ -97,7 +132,7 @@ class Matrix:
       hour = datetime.datetime.now().hour
       
       try:
-        if globals.hueConnected and not globals.hueBulb.on:
+        if not dayTime and not lightsOn:
           rgb.r = globals.nightr
           rgb.g = globals.nightg
           rgb.b = globals.nightb
@@ -109,18 +144,6 @@ class Matrix:
           rgb.b = globals.nightb
     
     return rgb
-
-  def getDayTime(self):
-    city = LocationInfo("Leeds", "England")
-
-    s = sun(city.observer, date=datetime.datetime.now())
-
-    utc=pytz.UTC
-
-    timeNow =  utc.localize(datetime.datetime.now() #+ timedelta(hours=2))
-    dayTime = s['sunrise'] < timeNow and timeNow < s['sunset']
-
-    return dayTime
 
   def calculateBgBrightness(self):
     brightness = globals.brightness
