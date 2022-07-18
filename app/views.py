@@ -23,9 +23,9 @@ def daySubmit():
     rgb = rgb[4:len(rgb)-1]
     rgb = rgb.split(",")
     
-    globals.r = rgb[0]
-    globals.g = rgb[1]
-    globals.b = rgb[2]
+    globals.r = int(rgb[0])
+    globals.g = int(rgb[1])
+    globals.b = int(rgb[2])
     
     globals.brightness = data.get('brightness')
 

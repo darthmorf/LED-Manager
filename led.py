@@ -188,7 +188,7 @@ class Matrix:
         for j in range(self.width):
           rgb = self.values[i][j]
           rgb = rgb.toRGB()
-          
+
           self.pygame.draw.rect(self.surface, rgb, self.pygame.Rect(x, y, self.pixelModifier, self.pixelModifier))
           x += self.pixelModifier + 1
         x = 0
@@ -204,7 +204,7 @@ class Matrix:
         for j in range(self.width):
           if self.values[i][j].toRGB() != (0,0,0):
             rgb = self.values[i][j]
-            self.canvas.SetPixel(j, i, rgb.r, rgb.g, rgb.b)
+            self.canvas.SetPixel(j, i, int(rgb.r), int(rgb.g), int(rgb.b))
 
       self.canvas = self.matrix.SwapOnVSync(self.canvas)
     
