@@ -245,7 +245,7 @@ def clock(color, grid):
 
 
 def clockDay(color, grid):
-    x = 34
+    x = 33
     y = 12
     
     value = datetime.now().weekday()
@@ -258,7 +258,7 @@ def clockDay(color, grid):
 
 
 def clockDate(color, grid):
-    x = 47
+    x = 46
     y = 12
 
     date = datetime.today().strftime("%d%m")
@@ -272,6 +272,9 @@ def clockDate(color, grid):
                     grid.setPixel(x+k, y+j, color)
 
         x += 4
+
+        if i == 1:
+            x += 1
 
 
     
