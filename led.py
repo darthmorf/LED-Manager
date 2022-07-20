@@ -95,16 +95,20 @@ class Matrix:
       globals.brightness = 1
 
   def getDayTime(self):
-    timeOffset = 2
+    sunsetOffset = 3
+    sunriseOffset = 4
     utc=pytz.UTC
+
+    timeNowSS =  utc.localize(datetime.datetime.now() + timedelta(hours=sunsetOffset))
+    timeNowSR =  utc.localize(datetime.datetime.now() + timedelta(hours=sunriseOffset))
 
     if self.debug:
       city = LocationInfo("Leeds", "England")
 
       s = sun(city.observer, date=datetime.datetime.now())
 
-      timeNow =  utc.localize(datetime.datetime.now() + timedelta(hours=timeOffset))
-      dayTime = s['sunrise'] < timeNow and timeNow < s['sunset']
+      
+      dayTime = s['sunrise'] < timeNowSR and timeNowSS < s['sunset']
 
       return dayTime
 
@@ -117,8 +121,7 @@ class Matrix:
       city = a[city_name]
       s = city.sun(date=datetime.datetime.now(), local=True)       
 
-      timeNow =  utc.localize(datetime.datetime.now() + timedelta(hours=timeOffset))
-      dayTime = s['sunrise'] < timeNow and timeNow < s['sunset']
+      dayTime = s['sunrise'] < timeNowSR and timeNowSS < s['sunset']
 
       return dayTime
 
