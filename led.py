@@ -99,7 +99,7 @@ class Matrix:
     sunriseOffset = 4
     utc=pytz.UTC
 
-    timeNowSS =  utc.localize(datetime.datetime.now() + timedelta(hours=sunsetOffset))
+    timeNowSS =  utc.localize(datetime.datetime.now() - timedelta(hours=sunsetOffset))
     timeNowSR =  utc.localize(datetime.datetime.now() + timedelta(hours=sunriseOffset))
 
     if self.debug:
