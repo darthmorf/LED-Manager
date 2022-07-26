@@ -107,10 +107,9 @@ class Matrix:
 
       s = sun(city.observer, date=datetime.datetime.now())
 
-      
       dayTime = s['sunrise'] < timeNowSR and timeNowSS < s['sunset']
 
-      return dayTime
+      return (dayTime and not globals.forceNight)
 
     else:
       city_name = 'Leeds'
@@ -123,13 +122,18 @@ class Matrix:
 
       dayTime = s['sunrise'] < timeNowSR and timeNowSS < s['sunset']
 
-      return dayTime
+      return (dayTime and not globals.forceNight)
 
 
   def calculateClockColour(self, rgb):
     if globals.useTimeBrightness:
 
-      lightsOn = globals.hueConnected and globals.hueBulb.on
+      try:
+        bulbOn = globals.hueBulb.on
+      except:
+        bulbOn = False
+
+      lightsOn = globals.hueConnected and bulbOn
       dayTime = self.getDayTime()
       
       hour = datetime.datetime.now().hour
@@ -153,7 +157,12 @@ class Matrix:
 
     nightBrightness = globals.nightBrightness
 
-    lightsOn = globals.hueConnected and globals.hueBulb.on
+    try:
+      bulbOn = globals.hueBulb.on
+    except:
+      bulbOn = False
+
+    lightsOn = globals.hueConnected and bulbOn
     dayTime = self.getDayTime()
 
     if globals.useTimeBrightness:

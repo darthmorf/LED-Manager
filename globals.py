@@ -10,6 +10,7 @@ brightness = 1
 nightBrightness = 0.02
 
 useTimeBrightness = True
+forceNight = False
 strobe = False
 hueConnected = False
 hueBulb = None

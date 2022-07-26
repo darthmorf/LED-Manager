@@ -14,7 +14,12 @@ def index():
     if globals.useTimeBrightness:
         useTimeBrightness = "checked"
 
-    return render_template('index.html', title='Home', dayHexColour=dayHexColour, nightHexColour=nightHexColour, brightness=globals.brightness, nightBrightness=globals.nightBrightness, useTimeBrightness=useTimeBrightness)
+    if globals.forceNight:
+        forceNight = "checked"
+    else:
+        forceNight = ""
+
+    return render_template('index.html', title='Home', dayHexColour=dayHexColour, nightHexColour=nightHexColour, brightness=globals.brightness, nightBrightness=globals.nightBrightness, useTimeBrightness=useTimeBrightness, forceNight=forceNight)
 
 @app.route('/daysubmit', methods=['POST'])
 def daySubmit():
@@ -44,7 +49,8 @@ def nightSubmit():
     globals.nightr = rgb[0]
     globals.nightg = rgb[1]
     globals.nightb = rgb[2]
-    
+
+    globals.forceNight = data.get("forceNight")
     globals.nightBrightness = data.get('brightness')
     globals.useTimeBrightness = data.get('useNightBrightness')
 
