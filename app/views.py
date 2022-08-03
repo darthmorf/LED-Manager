@@ -35,7 +35,7 @@ def daySubmit():
     globals.brightness = data.get('brightness')
 
     with open("./data/clockcolour", "w") as file:
-        file.write(globals.r + "," + globals.g + "," + globals.b)
+        file.write(str(globals.r) + "," + str(globals.g) + "," + str(globals.b))
 
     return json.dumps({'status':'Success'})
 
@@ -55,7 +55,7 @@ def nightSubmit():
     globals.useTimeBrightness = data.get('useNightBrightness')
 
     with open("./data/nightclockcolour", "w") as file:
-        file.write(globals.r + "," + globals.g + "," + globals.b)
+        file.write(str(globals.r) + "," + str(globals.g) + "," + str(globals.b))
 
     return json.dumps({'status':'Success'})
 
