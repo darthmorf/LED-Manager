@@ -363,12 +363,8 @@ class Matrix:
 
         try:
           current_track = spotify.current_playback(additional_types=["episode"])
-        except:
-          print("Spotify Error")
 
-        if current_track and current_track["is_playing"]:
-
-          try:
+          if current_track and current_track["is_playing"]:
 
             if current_track["currently_playing_type"] == "episode":
               url = current_track["item"]["images"][0]["url"]
@@ -395,10 +391,11 @@ class Matrix:
               self.setPixel(x, 28, Color(0, 0, 0))
 
             for x in range(32, 32 + fraction):
-              self.setPixel(x, 28, Color(255 * brightness, 255 * brightness, 255 * brightness))         
+              self.setPixel(x, 28, Color(255 * brightness, 255 * brightness, 255 * brightness)) 
 
-          except Exception as e:
-            print(e)
+        except Exception as e:
+          print("Spotify Error")
+          print(e)      
         
         color = self.calculateClockColour(Color(r, g, b))
 
