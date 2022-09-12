@@ -36,7 +36,7 @@ Features:
 
 
 #### Night Mode (Autumn)
-![night](docs/autumn_music.jpg)
+![night](docs/autumn_nightmode.jpg)
 
 
 #### Web Interface
