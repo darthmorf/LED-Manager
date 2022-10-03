@@ -30,11 +30,8 @@ else:
 
 if debug:
   import pygame
-  from astral import LocationInfo
-  from astral.sun import sun
 else:
   from rgbmatrix import RGBMatrix, RGBMatrixOptions
-  from astral import Astral
 
 class Color:
   def __init__(self, r, g, b):
@@ -94,90 +91,39 @@ class Matrix:
     elif globals.strobe or globals.rainbow or (globals.useHue and globals.hueConnected):
       globals.brightness = 1
 
-  def getDayTime(self):
-    sunsetOffset = 3
-    sunriseOffset = 4
-    utc=pytz.UTC
-
-    timeNowSS =  utc.localize(datetime.datetime.now() - timedelta(hours=sunsetOffset))
-    timeNowSR =  utc.localize(datetime.datetime.now() + timedelta(hours=sunriseOffset))
-
-    if self.debug:
-      city = LocationInfo("Leeds", "England")
-
-      s = sun(city.observer, date=datetime.datetime.now())
-
-      dayTime = s['sunrise'] < timeNowSR and timeNowSS < s['sunset']
-
-      return (dayTime and not globals.forceNight)
-
-    else:
-      city_name = 'Leeds'
-
-      a = Astral()
-      a.solar_depression = 'civil'
-
-      city = a[city_name]
-      s = city.sun(date=datetime.datetime.now(), local=True)       
-
-      dayTime = s['sunrise'] < timeNowSR and timeNowSS < s['sunset']
-
-      return (dayTime and not globals.forceNight)
-
 
   def calculateClockColour(self, rgb):
-    if globals.useTimeBrightness:
-
-      try:
-        bulbOn = globals.hueBulb.on
-      except:
-        bulbOn = False
-
-      lightsOn = globals.hueConnected and bulbOn
-      dayTime = self.getDayTime()
-      
-      hour = datetime.datetime.now().hour
-      
-      try:
-        if not dayTime and not lightsOn:
-          rgb.r = globals.nightr
-          rgb.g = globals.nightg
-          rgb.b = globals.nightb
-
-      except:
-        if hour > 21 or hour < 8:
-          rgb.r = globals.nightr
-          rgb.g = globals.nightg
-          rgb.b = globals.nightb
-    
-    return rgb
-
-  def calculateBgBrightness(self):
-    brightness = globals.brightness
-
-    nightBrightness = globals.nightBrightness
 
     try:
-      bulbOn = globals.hueBulb.on
+      bulbOn = globals.hueOnBulb.on
     except:
       bulbOn = False
 
     lightsOn = globals.hueConnected and bulbOn
-    dayTime = self.getDayTime()
 
-    if globals.useTimeBrightness:
-      
-      hour = datetime.datetime.now().hour
-      
-      try:
-        if not dayTime and not lightsOn:
-          brightness = nightBrightness
+    if lightsOn:
+      rgb.r = globals.nightr
+      rgb.g = globals.nightg
+      rgb.b = globals.nightb
+    else:
+      rgb.r = globals.nightr
+      rgb.g = globals.nightg
+      rgb.b = globals.nightb
+    return rgb
 
-      except:
-        if hour > 21 or hour < 8:
-          brightness = nightBrightness
+  def calculateBgBrightness(self):
+
+    try:
+      bulbOn = globals.hueOnBulb.on
+    except:
+      bulbOn = False
+
+    lightsOn = globals.hueConnected and bulbOn
+
+    if lightsOn:
+      return globals.brightness
     
-    return brightness
+    return globals.nightBrightness
 
     
 
@@ -416,7 +362,7 @@ def updateTime():
   #  time.sleep(1)
 
 def getHueColor():
-  return tuple(round(i * 255) for i in colorsys.hsv_to_rgb(float(globals.hueBulb.hue) / 65535, float(globals.hueBulb.saturation) / 255, float(globals.hueBulb.brightness) / 255))
+  return tuple(round(i * 255) for i in colorsys.hsv_to_rgb(float(globals.hueColourBulb.hue) / 65535, float(globals.hueColourBulb.saturation) / 255, float(globals.hueColourBulb.brightness) / 255))
 
 def initHue():
   try:
@@ -426,14 +372,21 @@ def initHue():
     bridge.get_api()
     lights = bridge.get_light_objects('list')
 
-    globals.hueBulb = None
+    globals.hueColourBulb = None
+    globals.hueOnBulb = None
 
     for l in lights:
+      print(l.name)
       if l.name == "Sams Room Light Left":
-        globals.hueBulb = l
+        globals.hueColourBulb = l
+      elif l.name == "Lava Lamp":
+        globals.hueOnBulb = l
 
-    if globals.hueBulb == None:
+    if globals.hueColourBulb == None:
       raise Exception("Could not find left light bulb")
+
+    if globals.hueOnBulb == None:
+      raise Exception("Could not find matrix bulb")
 
     globals.hueConnected = True
     print("Connected to Hue.")

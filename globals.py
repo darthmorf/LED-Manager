@@ -13,7 +13,8 @@ useTimeBrightness = True
 forceNight = False
 strobe = False
 hueConnected = False
-hueBulb = None
+hueColourBulb = None
+hueOnBulb = None
 useHue = False
 rainbow = False
 
