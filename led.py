@@ -156,7 +156,7 @@ class Matrix:
 
     else:
       self.canvas.Clear()
-      self.calculateBrightness(True)
+      self.calculateBrightness(False)
 
       for i in range(self.height):
         for j in range(self.width):
@@ -376,7 +376,6 @@ def initHue():
     globals.hueOnBulb = None
 
     for l in lights:
-      print(l.name)
       if l.name == "Sams Room Light Left":
         globals.hueColourBulb = l
       elif l.name == "Lava Lamp":

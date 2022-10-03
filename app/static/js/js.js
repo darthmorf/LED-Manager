@@ -49,17 +49,12 @@ $(document).ready(function() {
 			brightness = 0;
 		}
 
-		var useNightBrightness = $("#useNightBrightness")[0].checked;
-		var forceNight = $("#forceNight")[0].checked;
-
         $.ajax({
 			url: '/nightsubmit',
 			type: 'POST',
 			data: JSON.stringify({ 
 				rgb: rgb,
-				brightness: brightness,
-				useNightBrightness: useNightBrightness,
-				forceNight: forceNight
+				brightness: brightness
 			}),
             // We are using JSON, not XML
 			contentType: "application/json; charset=utf-8",

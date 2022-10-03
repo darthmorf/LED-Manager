@@ -10,16 +10,7 @@ def index():
     dayHexColour = '#%02x%02x%02x' % (int(globals.r), int(globals.g), int(globals.b))
     nightHexColour = '#%02x%02x%02x' % (int(globals.nightr), int(globals.nightg), int(globals.nightb))
 
-    checked = ""
-    if globals.useTimeBrightness:
-        useTimeBrightness = "checked"
-
-    if globals.forceNight:
-        forceNight = "checked"
-    else:
-        forceNight = ""
-
-    return render_template('index.html', title='Home', dayHexColour=dayHexColour, nightHexColour=nightHexColour, brightness=globals.brightness, nightBrightness=globals.nightBrightness, useTimeBrightness=useTimeBrightness, forceNight=forceNight)
+    return render_template('index.html', title='Home', dayHexColour=dayHexColour, nightHexColour=nightHexColour, brightness=globals.brightness, nightBrightness=globals.nightBrightness)
 
 @app.route('/daysubmit', methods=['POST'])
 def daySubmit():
@@ -50,9 +41,7 @@ def nightSubmit():
     globals.nightg = rgb[1]
     globals.nightb = rgb[2]
 
-    globals.forceNight = data.get("forceNight")
     globals.nightBrightness = data.get('brightness')
-    globals.useTimeBrightness = data.get('useNightBrightness')
 
     with open("./data/nightclockcolour", "w") as file:
         file.write(str(globals.r) + "," + str(globals.g) + "," + str(globals.b))
