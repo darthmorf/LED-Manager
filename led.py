@@ -102,9 +102,9 @@ class Matrix:
     lightsOn = globals.hueConnected and bulbOn
 
     if lightsOn:
-      rgb.r = globals.nightr
-      rgb.g = globals.nightg
-      rgb.b = globals.nightb
+      rgb.r = globals.r
+      rgb.g = globals.g
+      rgb.b = globals.b
     else:
       rgb.r = globals.nightr
       rgb.g = globals.nightg
@@ -378,7 +378,7 @@ def initHue():
     for l in lights:
       if l.name == "Sams Room Light Left":
         globals.hueColourBulb = l
-      elif l.name == "Lava Lamp":
+      elif l.name == "LED Matrix":
         globals.hueOnBulb = l
 
     if globals.hueColourBulb == None:
