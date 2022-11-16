@@ -17,6 +17,7 @@ import random
 import spotipy
 from spotipy.oauth2 import SpotifyOAuth
 import spotipy.util as util
+from requests.exceptions import ReadTimeout
 from PIL import Image
 import requests
 from io import BytesIO
@@ -219,7 +220,7 @@ class Matrix:
       keys = keys.split(",")
 
     scope = 'user-read-currently-playing user-read-playback-state'
-    spotify = spotipy.Spotify(auth_manager=SpotifyOAuth(client_id=keys[0], client_secret=keys[1], redirect_uri="http://localhost:8888/callback", scope=scope))
+    spotify = spotipy.Spotify(auth_manager=SpotifyOAuth(client_id=keys[0], client_secret=keys[1], redirect_uri="http://localhost:8888/callback", scope=scope), requests_timeout=10, retries=10)
       
     drawClock = True
 
@@ -318,7 +319,7 @@ class Matrix:
             else:
               url = current_track["item"]["album"]["images"][0]["url"]
 
-            response = requests.get(url)
+            response = requests.get(url, timeout=10)
             im = Image.open(BytesIO(response.content)).convert('RGB')
             im = im.resize((30, 30))
             px = im.load()
@@ -339,8 +340,11 @@ class Matrix:
             for x in range(32, 32 + fraction):
               self.setPixel(x, 28, Color(255 * brightness, 255 * brightness, 255 * brightness)) 
 
+        except ReadTimeout:
+           print("Spotify timed out...")
+
         except Exception as e:
-          print("Spotify Error")
+          print("Spotify Error:")
           print(e)      
         
         color = self.calculateClockColour(Color(r, g, b))
