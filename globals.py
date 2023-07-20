@@ -2,12 +2,12 @@ r = 255
 g = 255
 b = 255
 
-nightr = 64
-nightg = 64
-nightb = 64
+nightr = 8
+nightg = 8
+nightb = 8
 
 brightness = 1
-nightBrightness = 0.02
+nightBrightness = 0.00
 
 strobe = False
 hueConnected = False

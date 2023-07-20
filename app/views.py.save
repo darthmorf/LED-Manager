@@ -15,7 +15,6 @@ def index():
 @app.route('/daysubmit', methods=['POST'])
 def daySubmit():
     data = json.loads(request.data)
-
     rgb = data.get('rgb')
     rgb = rgb[4:len(rgb)-1]
     rgb = rgb.split(",")
@@ -34,7 +33,7 @@ def daySubmit():
 @app.route('/nightsubmit', methods=['POST'])
 def nightSubmit():
     data = json.loads(request.data)
-    print(data)
+    print(request)
     rgb = data.get('rgb')
     rgb = rgb[4:len(rgb)-1]
     rgb = rgb.split(",")
@@ -44,10 +43,7 @@ def nightSubmit():
     globals.nightb = rgb[2]
 
     globals.nightBrightness = data.get('brightness')
-#    print(globals.nightBrightness)
-    if globals.nightBrightness > 1:
-        globals.nightBrightness = globals.nightBrightness / 255.0
-#       print(globals.nightBrightness)
+
     with open("./data/nightclockcolour", "w") as file:
         file.write(str(globals.r) + "," + str(globals.g) + "," + str(globals.b))
 
