@@ -1,7 +1,6 @@
 #!/usr/bin/env python
 
 from threading import Thread, Timer
-from phue import Bridge
 import subprocess
 import draw
 import time
@@ -76,55 +75,30 @@ class Matrix:
       self.matrix = RGBMatrix(options = options)
       self.canvas = self.matrix.CreateFrameCanvas()
 
-  def calculateBrightness(self, ignoreGpio):
+  def calculateBrightness(self, ignoreGpio=False):
+
+    if self.debug:
+      globals.brightness = 1
+      return
 
     if not ignoreGpio:
       try:
         proc = subprocess.Popen("gpio -g mode 2 out; gpio -g mode 19 in; gpio -g write 2 1; gpio -g read 19", shell=True, stdout=subprocess.PIPE)
         switch = int(proc.stdout.read())
       except LookupError:
-        print("Reading switch GPIO failed! Defaulting to On. This probably means that the SD card has slipped out D:")
+        print("Reading switch GPIO failed! Defaulting to On.")
         switch = 1
 
     if not ignoreGpio and switch == 0:
       globals.brightness = 0
 
-    elif globals.strobe or globals.rainbow or (globals.useHue and globals.hueConnected):
+    elif globals.strobe or globals.rainbow:
       globals.brightness = 1
 
 
   def calculateClockColour(self, rgb):
 
-    try:
-      bulbOn = globals.hueOnBulb.on
-    except:
-      bulbOn = False
-
-    lightsOn = globals.hueConnected and bulbOn
-
-    if lightsOn:
-      rgb.r = globals.r
-      rgb.g = globals.g
-      rgb.b = globals.b
-    else:
-      rgb.r = globals.nightr
-      rgb.g = globals.nightg
-      rgb.b = globals.nightb
-    return rgb
-
-  def calculateBgBrightness(self):
-
-    try:
-      bulbOn = globals.hueOnBulb.on
-    except:
-      bulbOn = False
-
-    lightsOn = globals.hueConnected and bulbOn
-
-    if lightsOn:
-      return globals.brightness
-    
-    return globals.nightBrightness
+   return Color(0,0,0)
 
     
 
@@ -146,6 +120,7 @@ class Matrix:
       for i in range(self.height):
         for j in range(self.width):
           rgb = self.values[i][j]
+          print(rgb)
           rgb = rgb.toRGB()
 
           self.pygame.draw.rect(self.surface, rgb, self.pygame.Rect(x, y, self.pixelModifier, self.pixelModifier))
@@ -199,21 +174,7 @@ class Matrix:
 
     print("Running LED Manager. Pres Ctrl+C to quit.")
 
-    with open("./data/clockcolour", "r") as file:
-      rgbStr = file.read()
-      rgbStr = rgbStr.split(",")
-
-      globals.r = rgbStr[0]
-      globals.g = rgbStr[1]
-      globals.b = rgbStr[2]
-
-    with open("./data/nightclockcolour", "r") as file:
-      rgbStr = file.read()
-      rgbStr = rgbStr.split(",")
-
-      globals.nightr = int(rgbStr[0])
-      globals.nightg = int(rgbStr[1])
-      globals.nightb = int(rgbStr[2])
+    
 
     with open("./data/spotifykeys", "r") as file:
       keys = file.read()
@@ -239,24 +200,9 @@ class Matrix:
   
     while True:
 
-      r = int(globals.r)
-      g = int(globals.g)
-      b = int(globals.b)
-
-
-      if globals.hueConnected and globals.useHue:
-
-        try:
-          color = getHueColor()
-
-          r = color[0]
-          g = color[1]
-          b = color[2]
-
-        except:
-          print("Lost connection to Hue.")
-          globals.hueConnected = False
-
+      r = 0
+      g = 0
+      b = 0
         
       if globals.image != []:
         drawClock = False
@@ -292,7 +238,9 @@ class Matrix:
 
       else:
         month = int(datetime.datetime.now().strftime("%m"))
-        brightness = self.calculateBgBrightness()
+        self.calculateBrightness()
+
+        brightness = globals.brightness
 
         if month > 2 and month < 6:
           px = pxSpring
@@ -365,38 +313,6 @@ def updateTime():
   os.system("sudo date -s \"$(wget -qSO- --max-redirect=0 google.com 2>&1 | grep Date: | cut -d' ' -f5-8)Z\"")
   #  time.sleep(1)
 
-def getHueColor():
-  return tuple(round(i * 255) for i in colorsys.hsv_to_rgb(float(globals.hueColourBulb.hue) / 65535, float(globals.hueColourBulb.saturation) / 255, float(globals.hueColourBulb.brightness) / 255))
-
-def initHue():
-  try:
-    print("Connecting to Hue... ")
-    bridge = Bridge('192.168.0.58')
-    bridge.connect()
-    bridge.get_api()
-    lights = bridge.get_light_objects('list')
-
-    globals.hueColourBulb = None
-    globals.hueOnBulb = None
-
-    for l in lights:
-      if l.name == "Sams Room Light Left":
-        globals.hueColourBulb = l
-      elif l.name == "LED Matrix":
-        globals.hueOnBulb = l
-
-    if globals.hueColourBulb == None:
-      raise Exception("Could not find left light bulb")
-
-    if globals.hueOnBulb == None:
-      raise Exception("Could not find matrix bulb")
-
-    globals.hueConnected = True
-    print("Connected to Hue.")
-
-  except Exception as e:
-    globals.hueConnected = False
-    print("Could not connect to Hue:\n" + str(e) + "\n")
 
 if __name__ == '__main__':
   try:
@@ -405,11 +321,10 @@ if __name__ == '__main__':
     #timeSyncTimer.start()
     #updateTime()
 
-    initHue()
 
-    webThread = Thread(target=run.start)
-    webThread.daemon = True
-    webThread.start()
+    #webThread = Thread(target=run.start)
+    #webThread.daemon = True
+    #webThread.start()
 
     matrix = Matrix()
 
