@@ -120,7 +120,6 @@ class Matrix:
       for i in range(self.height):
         for j in range(self.width):
           rgb = self.values[i][j]
-          print(rgb)
           rgb = rgb.toRGB()
 
           self.pygame.draw.rect(self.surface, rgb, self.pygame.Rect(x, y, self.pixelModifier, self.pixelModifier))
@@ -267,14 +266,17 @@ class Matrix:
             else:
               url = current_track["item"]["album"]["images"][0]["url"]
 
+            imageSize = 28
+            imageOffset = 2
+
             response = requests.get(url, timeout=10)
             im = Image.open(BytesIO(response.content)).convert('RGB')
-            im = im.resize((30, 30))
+            im = im.resize((imageSize, imageSize))
             px = im.load()
 
-            for x in range(2, 30):
-              for y in range(2, 30):
-                col = px[x-2, y-2]
+            for x in range(imageOffset, imageSize + imageOffset):
+              for y in range(imageOffset, imageSize + imageOffset):
+                col = px[x-imageOffset, y-imageOffset]
                 self.setPixel(x, y, Color(col[0] * brightness, col[1] * brightness, col[2] * brightness))
 
             progress = float(current_track["progress_ms"])
