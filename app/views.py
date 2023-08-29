@@ -4,90 +4,80 @@ import globals
 
 import random
 
-@app.route('/', methods=['GET', 'POST'])
-def index():
+#@app.route('/', methods=['GET', 'POST'])
+#def index():
+#
+#    dayHexColour = '#%02x%02x%02x' % (int(globals.r), int(globals.g), int(globals.b))
+#    nightHexColour = '#%02x%02x%02x' % (int(globals.nightr), int(globals.nightg), int(globals.nightb))
+#
+#    return render_template('index.html', title='Home', dayHexColour=dayHexColour, nightHexColour=nightHexColour, brightness=globals.brightness, nightBrightness=globals.nightBrightness)
 
-    dayHexColour = '#%02x%02x%02x' % (int(globals.r), int(globals.g), int(globals.b))
-    nightHexColour = '#%02x%02x%02x' % (int(globals.nightr), int(globals.nightg), int(globals.nightb))
+#@app.route('/daysubmit', methods=['POST'])
+#def daySubmit():
+#    data = json.loads(request.data)
+#
+#    rgb = data.get('rgb')
+#    rgb = rgb[4:len(rgb)-1]
+#    rgb = rgb.split(",")
+#    
+#    globals.r = int(rgb[0])
+#    globals.g = int(rgb[1])
+#    globals.b = int(rgb[2])
+#    
+#    globals.brightness = data.get('brightness')
+#
+#    with open("./data/clockcolour", "w") as file:
+#        file.write(str(globals.r) + "," + str(globals.g) + "," + str(globals.b))
+#
+#    return json.dumps({'status':'Success'})
 
-    return render_template('index.html', title='Home', dayHexColour=dayHexColour, nightHexColour=nightHexColour, brightness=globals.brightness, nightBrightness=globals.nightBrightness)
-
-@app.route('/daysubmit', methods=['POST'])
-def daySubmit():
-    data = json.loads(request.data)
-
-    rgb = data.get('rgb')
-    rgb = rgb[4:len(rgb)-1]
-    rgb = rgb.split(",")
-    
-    globals.r = int(rgb[0])
-    globals.g = int(rgb[1])
-    globals.b = int(rgb[2])
-    
-    globals.brightness = data.get('brightness')
-
-    with open("./data/clockcolour", "w") as file:
-        file.write(str(globals.r) + "," + str(globals.g) + "," + str(globals.b))
-
-    return json.dumps({'status':'Success'})
-
-@app.route('/nightsubmit', methods=['POST'])
+@app.route('/hueupdate', methods=['POST'])
 def nightSubmit():
-    data = json.loads(request.data)
-    print(data)
-    rgb = data.get('rgb')
-    rgb = rgb[4:len(rgb)-1]
-    rgb = rgb.split(",")
-    
-    globals.nightr = rgb[0]
-    globals.nightg = rgb[1]
-    globals.nightb = rgb[2]
+    print(request.data)
 
-    globals.nightBrightness = data.get('brightness')
+    globals.brightness = int(request.data)
 #    print(globals.nightBrightness)
-    if globals.nightBrightness > 1:
-        globals.nightBrightness = globals.nightBrightness / 255.0
+    if globals.brightness > 1:
+        globals.brightness = globals.brightness / 255.0
 #       print(globals.nightBrightness)
-    with open("./data/nightclockcolour", "w") as file:
-        file.write(str(globals.r) + "," + str(globals.g) + "," + str(globals.b))
 
     return json.dumps({'status':'Success'})
 
 
-@app.route('/imagesubmit', methods=['GET', 'POST'])
-def imageSubmit():
-    imageData = list(eval(request.args.get("imageData")))
+#@app.route('/imagesubmit', methods=['GET', 'POST'])
+#def imageSubmit():
+#    imageData = list(eval(request.args.get("imageData")))
+#
+#    globals.image = imageData
+#
+#    return redirect(url_for('index'))
 
-    globals.image = imageData
+#@app.route('/reset', methods=['GET', 'POST'])
+#def reset():
+#
+#    globals.image = []
+#
+#    return redirect(url_for('index'))
 
-    return redirect(url_for('index'))
+#@app.route('/togglestrobe', methods=['POST'])
+#def togglestrobe():
+#
+#    globals.strobe = not globals.strobe
+#
+#    return json.dumps({'status':'Success'})
 
-@app.route('/reset', methods=['GET', 'POST'])
-def reset():
+#@app.route('/togglerainbow', methods=['POST'])
+#def togglerainbow():
+#
+#    globals.rainbow = not globals.rainbow
+#
+#    return json.dumps({'status':'Success'})
 
-    globals.image = []
-
-    return redirect(url_for('index'))
-
-@app.route('/togglestrobe', methods=['POST'])
-def togglestrobe():
-
-    globals.strobe = not globals.strobe
-
-    return json.dumps({'status':'Success'})
-
-@app.route('/togglerainbow', methods=['POST'])
-def togglerainbow():
-
-    globals.rainbow = not globals.rainbow
-
-    return json.dumps({'status':'Success'})
-
-@app.route('/togglehue', methods=['POST'])
-def togglehue():
-
-    globals.useHue = not globals.useHue
-
-    return json.dumps({'status':'Success'})
+#@app.route('/togglehue', methods=['POST'])
+#def togglehue():
+#
+#    globals.useHue = not globals.useHue
+#
+#    return json.dumps({'status':'Success'})
 
 

@@ -77,11 +77,9 @@ class Matrix:
 
   def calculateBrightness(self, ignoreGpio=False):
 
-    if self.debug:
-      globals.brightness = 1
-      return
+    switch = 1
 
-    if not ignoreGpio:
+    if not ignoreGpio and not self.debug:
       try:
         proc = subprocess.Popen("gpio -g mode 2 out; gpio -g mode 19 in; gpio -g write 2 1; gpio -g read 19", shell=True, stdout=subprocess.PIPE)
         switch = int(proc.stdout.read())
@@ -89,11 +87,7 @@ class Matrix:
         print("Reading switch GPIO failed! Defaulting to On.")
         switch = 1
 
-    if not ignoreGpio and switch == 0:
-      globals.brightness = 0
-
-    elif globals.strobe or globals.rainbow:
-      globals.brightness = 1
+    return globals.brightness * switch
 
 
   def calculateClockColour(self, rgb):
@@ -181,7 +175,7 @@ class Matrix:
 
     scope = 'user-read-currently-playing user-read-playback-state'
     spotify = spotipy.Spotify(auth_manager=SpotifyOAuth(client_id=keys[0], client_secret=keys[1], redirect_uri="http://localhost:8888/callback", scope=scope), requests_timeout=10, retries=10)
-      
+
     drawClock = True
 
     current_track = None
@@ -219,27 +213,26 @@ class Matrix:
             x = 0
             y += 1
 
-      elif globals.strobe:
-        drawClock = False
-        self.setBG(Color(r, g, b))
-        self.update()
-        self.setBG(Color(0, 0, 0))
-        self.update()
-
-      elif globals.rainbow:
-        drawClock = False
-        h,s,l = random.random(), 0.5 + random.random()/2.0, 0.4 + random.random()/5.0
-        r,g,b = [int(256*i) for i in colorsys.hls_to_rgb(h,l,s)]
-
-        self.setBG(Color(r, g, b))
-        self.update()
-        time.sleep(0.5)
+    #  elif globals.strobe:
+    #    drawClock = False
+    #    self.setBG(Color(r, g, b))
+    #    self.update()
+    #    self.setBG(Color(0, 0, 0))
+    #    self.update()
+#
+    #  elif globals.rainbow:
+    #    drawClock = False
+    #    h,s,l = random.random(), 0.5 + random.random()/2.0, 0.4 + random.random()/5.0
+    #    r,g,b = [int(256*i) for i in colorsys.hls_to_rgb(h,l,s)]
+#
+    #    self.setBG(Color(r, g, b))
+    #    self.update()
+    #    time.sleep(0.5)
 
       else:
         month = int(datetime.datetime.now().strftime("%m"))
-        self.calculateBrightness()
 
-        brightness = globals.brightness
+        brightness = self.calculateBrightness()
 
         if month > 2 and month < 6:
           px = pxSpring
@@ -277,7 +270,8 @@ class Matrix:
             for x in range(imageOffset, imageSize + imageOffset):
               for y in range(imageOffset, imageSize + imageOffset):
                 col = px[x-imageOffset, y-imageOffset]
-                self.setPixel(x, y, Color(col[0] * brightness, col[1] * brightness, col[2] * brightness))
+                c = Color(col[0] * brightness, col[1] * brightness, col[2] * brightness)
+                self.setPixel(x, y, c)
 
             progress = float(current_track["progress_ms"])
             duration = current_track["item"]["duration_ms"]
@@ -304,10 +298,11 @@ class Matrix:
         draw.clockDate(color, self)
 
       if self.update() == -1:
+        
         return
 
       if globals.image == [] and not globals.strobe and not globals.rainbow:
-       time.sleep(1)
+        time.sleep(1)
 
 def updateTime():
   #while True:
@@ -324,9 +319,9 @@ if __name__ == '__main__':
     #updateTime()
 
 
-    #webThread = Thread(target=run.start)
-    #webThread.daemon = True
-    #webThread.start()
+    webThread = Thread(target=run.start)
+    webThread.daemon = True
+    webThread.start()
 
     matrix = Matrix()
 
